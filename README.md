@@ -1,4 +1,4 @@
-# Ubuntu Release Version 20 t0 22  Server Autoinstall
+# Ubuntu Release Version 20 To 22  Server Autoinstall
 
 A script to generate a fully-automated ISO image for installing Ubuntu onto a machine without human interaction. This uses the new autoinstall method for Ubuntu and newer.
 
@@ -6,13 +6,24 @@ A script to generate a fully-automated ISO image for installing Ubuntu onto a ma
 
 Tested on a host running Ubuntu machine
 - Utilities required:
-```
+ ```
 xorriso
 sed
 curl
 gpg
 isolinux
-```
+p7zip-full
+ ```
+
+### Note: 
+We all know that each release version number of ubuntu will be mapped to a name, the following table is the correspondence between them。
+
+| Nubmer      | Name    |
+|-------------|---------|
+| 20.04.5     | focal   |
+| 22.04.1     | jammy   |
+| 22.10       | kinetic |
+
 
 ## Usage
 ```
@@ -48,7 +59,7 @@ Available options:
 ```
 ## Example
 ```
-root@john-desktop:~/ubuntu# ./ubuntu-autoinstall-generator-tools.sh  -a -u user-data -n  jammy -d ubuntu-autoinstall-jammy.iso
+root@john-desktop:~/ubuntu# ./ubuntu-autoinstall-generator-tools.sh  -a -u user-data-template -n  jammy -d ubuntu-autoinstall-jammy.iso
 [2022-12-11 03:45:47] 👶 Starting up...
 [2022-12-11 03:45:47] 🔎 Checking for current release...
 [2022-12-11 03:45:49] 💿 Current release is 22.04.1
@@ -72,10 +83,8 @@ root@john-desktop:~/ubuntu# ./ubuntu-autoinstall-generator-tools.sh  -a -u user-
 [2022-12-11 03:46:22] 👍 Repackaged into /root/ubuntu20/ubuntu-autoinstall-jammy.iso
 [2022-12-11 03:46:22] ✅ Completed.
 [2020-12-23 14:08:14] 🚽 Deleted temporary working directory /tmp/tmp.qmj7TVgsn7
-Now you can boot your target machine using ubuntu-autoinstall-example.iso and it will automatically install Ubuntu using the configuration from user-data.example.
 ```
+Now you can boot your target machine using ubuntu-autoinstall-jammy.iso and it will automatically install Ubuntu using the configuration from user-data-example. Also, you can select the version you want to build with the required parameter -n.
 ## Thanks
 
-```text
-
-```
+The tool was created with reference to a large number of articles, including:[ubuntu-autoinstall-generator](https://github.com/covertsh/ubuntu-autoinstall-generator), [ubuntu-desktop-22.04-autoinstall](https://github.com/michaeltandy/ubuntu-desktop-22.04-autoinstall),[ubuntu 22.04 autoinstall](https://www.pugetsystems.com/labs/hpc/ubuntu-22-04-server-autoinstall-iso/#:~:text=The%20Ubuntu%2022.04%20server%20ISO%20layout%20differs%20from,partitions%20for%20you%21%207z%20-y%20x%20jammy-live-server-amd64.iso%20-osource-files), The script [ubuntu-autoinstall-generator](https://github.com/covertsh/ubuntu-autoinstall-generator) is based on the version control, and some parameters optimization, thanks to the developer's open source contribution.
