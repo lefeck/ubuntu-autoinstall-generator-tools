@@ -82,7 +82,7 @@ root@john-desktop:~/ubuntu# ./ubuntu-autoinstall-generator-tools.sh  -a -u user-
 [2022-12-11 03:46:03] 📦 Repackaging extracted files into an ISO image...
 [2022-12-11 03:46:22] 👍 Repackaged into /root/ubuntu20/ubuntu-autoinstall-jammy.iso
 [2022-12-11 03:46:22] ✅ Completed.
-[2020-12-23 14:08:14] 🚽 Deleted temporary working directory /tmp/tmp.qmj7TVgsn7
+[2022-12-11 03:46:22] 🚽 Deleted temporary working directory /tmp/tmp.qmj7TVgsn7
 ```
 Now you can boot your target machine using ubuntu-autoinstall-jammy.iso and it will automatically install Ubuntu using the configuration from user-data-example. Also, you can select the version you want to build with the required parameter -n.
 ## Thanks
