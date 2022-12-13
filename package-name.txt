@@ -1,0 +1,4 @@
+tcpdump
+net-tools
+gcc
+mysql-server

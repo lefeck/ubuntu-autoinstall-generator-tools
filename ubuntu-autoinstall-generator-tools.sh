@@ -50,6 +50,9 @@ Available options:
 -n, --release-name      Specifies the code name to download the ISO image distribution, You must select any string
                         from the list as an argument. eg: focal, jammy, kinetic.
 -m, --meta-data         Path to meta-data file. Will be an empty file if not specified and using -a
+-p, --packages-name     Bake file-name into the generated ISO. if the package-name is empty，no installation package
+                        will be downloaded.
+-f, --file-name         Path to file-name file. Required if using -p
 -k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-$today and
                         SHA256SUMS-$today.gpg in ${script_dir} will be used to verify the authenticity and integrity
                         of the source ISO file. If they are not present the latest daily SHA256SUMS will be
@@ -77,7 +80,8 @@ function parse_params() {
         use_hwe_kernel=0
         md5_checksum=1
         use_release_iso=1
-
+        packages_name=0
+        file_name=''
         while :; do
                 case "${1-}" in
                 -h | --help) usage ;;
@@ -87,8 +91,13 @@ function parse_params() {
                 -c | --no-md5) md5_checksum=0 ;;
                 -k | --no-verify) gpg_verify=0 ;;
                 -r | --use-release-iso) use_release_iso=0 ;;
+                -p | --packages-name) packages_name=1 ;;
                 -n | --release-name)
                         release_name="${2-}"
+                        shift
+                        ;;
+                -f | --file-name)
+                        file_name="${2-}"
                         shift
                         ;;
                 -u | --user-data)
@@ -175,7 +184,6 @@ fi
 log "👍 All required utilities are installed."
 
 
-
 # download ISO image
 if [ ! -f "${source_iso}" ]; then
         log "🌎 Downloading ISO image for Ubuntu ${sha_suffix} Focal Fossa..."
@@ -234,6 +242,7 @@ else
         log "🤞 Skipping verification of source ISO."
 fi
 
+
 log "🔧 Extracting ISO image..."
 if [ ${release_name} == "focal" ]; then
      xorriso -osirrox on -indev "${source_iso}" -extract / "$tmpdir" &>/dev/null
@@ -246,6 +255,17 @@ fi
 chmod -R u+w "$tmpdir"
 log "👍 Extracted to $tmpdir"
 
+if [ ${packages_name} -eq 1 ]; then
+  destination_dir="$tmpdir/install/pkgs"
+  [ -d "${destination_dir}" ] || mkdir -p "${destination_dir}"
+       for line in `cat $file_name`; do
+         log "🌎 Downloading and saving packages ${line}"
+         apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances \
+         --no-pre-depends ${line} | grep -v i386 | grep "^\w")
+       done
+       mv ${script_dir}/*.deb  ${destination_dir}
+       log "👍 downloaded packages and saved to ${destination_dir}"
+fi
 
 if [ ${use_hwe_kernel} -eq 1 ]; then
         if grep -q "hwe-vmlinuz" "$tmpdir/boot/grub/grub.cfg"; then
