@@ -1,0 +1,126 @@
+#cloud-config
+autoinstall:
+  apt:
+    disable_components: []
+    disable_suites: [security]
+    geoip: true
+    preserve_sources_list: false
+    primary:
+    - arches:
+      - amd64
+      - i386
+      uri: https://mirrors.tuna.tsinghua.edu.cn/ubuntu
+    - arches:
+      - default
+      uri: http://ports.ubuntu.com/ubuntu-ports
+  drivers:
+    install: false
+  identity:
+    hostname: ubuntu
+    # default password: 123456
+    password: $6$FnHPy.4giHfDcI8r$vllY94AceZFt20M6WzxXKfOLuycO7o8QD8RJJwVs/DSGcHNNF4ilbGrukXPMA3irAdiimHo0fl2zUdkbRO9vh1
+    realname: ubuntu
+    username: ubuntu
+  kernel:
+    package: linux-generic
+  keyboard:
+    layout: us
+    toggle: null
+    variant: ''
+  locale: en_US.UTF-8
+  network:
+    ethernets:
+      ens160:
+        addresses:
+        - 192.168.6.100/24
+        gateway4: 192.168.6.1
+        nameservers:
+          addresses:
+          - 114.114.114.114
+          search: []
+    version: 2
+  ssh:
+    allow-pw: true
+    authorized-keys: []
+    install-server: true
+  storage:
+    config:
+    - ptable: gpt
+      path: /dev/sda
+      wipe: superblock-recursive
+      preserve: false
+      name: ''
+      grub_device: true
+      type: disk
+      id: disk-sda
+    - device: disk-sda
+      size: 1048576
+      flag: bios_grub
+      number: 1
+      preserve: false
+      grub_device: false
+      type: partition
+      id: partition-0
+    - device: disk-sda
+      size: 2147483648
+      wipe: superblock
+      flag: ''
+      number: 2
+      preserve: false
+      grub_device: false
+      type: partition
+      id: partition-1
+    - fstype: ext4
+      volume: partition-1
+      preserve: false
+      type: format
+      id: format-0
+    - device: disk-sda
+      size: 4294967296
+      wipe: superblock
+      flag: swap
+      number: 3
+      preserve: false
+      grub_device: false
+      type: partition
+      id: partition-2
+    - fstype: swap
+      volume: partition-2
+      preserve: false
+      type: format
+      id: format-1
+    - path: ''
+      device: format-1
+      type: mount
+      id: mount-1
+    - device: disk-sda
+      size: -1
+      wipe: superblock
+      flag: ''
+      number: 4
+      preserve: false
+      grub_device: false
+      type: partition
+      id: partition-3
+    - fstype: ext4
+      volume: partition-3
+      preserve: false
+      type: format
+      id: format-2
+    - path: /
+      device: format-2
+      type: mount
+      id: mount-2
+    - path: /bootq
+      device: format-0
+      type: mount
+      id: mount-0
+    swap:
+      swap: 0
+  version: 1
+  late-commands:
+    # create ISO directory to  mount
+    - mkdir -p /target/cdrom
+    - cp -r /cdrom/extra /target/cdrom
+    - chmod +x  /target/cdrom/extra/script/install-pkgs.sh
+    - curtin in-target --target=/target -- /cdrom/extra/script/install-pkgs.sh

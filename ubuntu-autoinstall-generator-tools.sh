@@ -9,7 +9,7 @@ function cleanup() {
         fi
 }
 
-trap cleanup SIGINT SIGTERM ERR EXIT
+#trap cleanup SIGINT SIGTERM ERR EXIT
 
 bootdir="/tmp/BOOT"
 # Gets the current location of the script
@@ -32,7 +32,7 @@ function die() {
 # usage of the command line tool
 usage() {
         cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p ] [-f file-name] [-k] [-c] [-r] [-d destination-iso-file]
 
 💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
 
@@ -100,7 +100,7 @@ function parse_params() {
                         file_name="${2-}"
                         shift
                         ;;
-                -u | --user-data)
+                -u | --user-data.yaml)
                         user_data_file="${2-}"
                         shift
                         ;;
@@ -256,15 +256,26 @@ chmod -R u+w "$tmpdir"
 log "👍 Extracted to $tmpdir"
 
 if [ ${packages_name} -eq 1 ]; then
-  destination_dir="$tmpdir/install/pkgs"
-  [ -d "${destination_dir}" ] || mkdir -p "${destination_dir}"
-       for line in `cat $file_name`; do
+  # Create an extra directory in the $tmpdir directory for other files
+  mkdir -p $tmpdir/extra/{pkgs,script}
+  pkgs_destination_dir="$tmpdir/extra/pkgs"
+  exec_script_dir="$tmpdir/extra/script/"
+  script_file="install-pkgs.sh"
+  if [ "${script_file##*.}"x = "sh"x ];then
+  	  cp "$script_file"  "$exec_script_dir"
+  else
+  	  die "👿 Verification of script file failed."
+  fi
+
+  [ -d "${pkgs_destination_dir}" ] || mkdir -p "${pkgs_destination_dir}"
+       grep -Ev '^[[:space:]].*|^#|^$' $file_name > $tmpdir/$file_name
+       for line in `cat $tmpdir/$file_name`; do
          log "🌎 Downloading and saving packages ${line}"
          apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances \
-         --no-pre-depends ${line} | grep -v i386 | grep "^\w")
+         --no-pre-depends ${line} | grep -v i386 | grep "^\w") &>/dev/null
        done
-       mv ${script_dir}/*.deb  ${destination_dir}
-       log "👍 downloaded packages and saved to ${destination_dir}"
+       mv ${script_dir}/*.deb  ${pkgs_destination_dir}
+       log "👍 downloaded packages and saved to ${pkgs_destination_dir}"
 fi
 
 if [ ${use_hwe_kernel} -eq 1 ]; then
@@ -293,20 +304,20 @@ fi
 
 log "👍 Added parameter to UEFI and BIOS kernel command lines."
 
-# create user-data and meta-data, then change grub.cfg file
+# create user-data.yaml and meta-data, then change grub.cfg file
 if [ ${all_in_one} -eq 1 ]; then
         log "🧩 Adding user-data and meta-data files..."
-        mkdir "$tmpdir/nocloud"
-        cp "$user_data_file" "$tmpdir/nocloud/user-data"
+        #mkdir "$tmpdir/nocloud"
+        cp "$user_data_file" "$tmpdir/user-data"
         if [ -n "${meta_data_file}" ]; then
-                cp "$meta_data_file" "$tmpdir/nocloud/meta-data"
+                cp "$meta_data_file" "$tmpdir/meta-data"
         else
-                touch "$tmpdir/nocloud/meta-data"
+                touch "$tmpdir/meta-data"
         fi
-        grep 'cdrom' "$tmpdir/boot/grub/grub.cfg" &>/dev/null || sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/nocloud/  ---,g' "$tmpdir/boot/grub/grub.cfg"
+        grep 'cdrom' "$tmpdir/boot/grub/grub.cfg" &>/dev/null || sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/  ---,g' "$tmpdir/boot/grub/grub.cfg"
         if [ ${release_name} == "focal" ]; then
-                grep 'cdrom' "$tmpdir/isolinux/txt.cfg"  &>/dev/null || sed -i -e 's,---, ds=nocloud;s=/cdrom/nocloud/  ---,g' "$tmpdir/isolinux/txt.cfg"
-                grep 'cdrom' "$tmpdir/boot/grub/loopback.cfg" &>/dev/null || sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/nocloud/  ---,g' "$tmpdir/boot/grub/loopback.cfg"
+                grep 'cdrom' "$tmpdir/isolinux/txt.cfg"  &>/dev/null || sed -i -e 's,---, ds=nocloud;s=/cdrom/  ---,g' "$tmpdir/isolinux/txt.cfg"
+                grep 'cdrom' "$tmpdir/boot/grub/loopback.cfg" &>/dev/null || sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/  ---,g' "$tmpdir/boot/grub/loopback.cfg"
         fi
         log "👍 Added data and configured kernel command line."
 fi
@@ -329,41 +340,46 @@ fi
 
 log "📦 Repackaging extracted files into an ISO image..."
 cd "$tmpdir"
-if [ ${release_name} == "focal" ]; then
-xorriso -as mkisofs -r \
-     -V "ubuntu-autoinstall-${release_name}" \
-     -J -b isolinux/isolinux.bin \
-     -c isolinux/boot.cat \
-     -no-emul-boot \
-     -boot-load-size 4 \
-     -isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin \
-     -boot-info-table \
-     -input-charset utf-8 \
-     -eltorito-alt-boot \
-     -e boot/grub/efi.img \
-     -no-emul-boot \
-     -isohybrid-gpt-basdat \
-     -o "${destination_iso}" \
-     . &>/dev/null
+# Check if the iso image format is correct
+if [ "${destination_iso##*.}"x = "iso"x ];then
+	if [ ${release_name} == "focal" ]; then
+  xorriso -as mkisofs -r \
+       -V "ubuntu-autoinstall-${release_name}" \
+       -J -b isolinux/isolinux.bin \
+       -c isolinux/boot.cat \
+       -no-emul-boot \
+       -boot-load-size 4 \
+       -isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin \
+       -boot-info-table \
+       -input-charset utf-8 \
+       -eltorito-alt-boot \
+       -e boot/grub/efi.img \
+       -no-emul-boot \
+       -isohybrid-gpt-basdat \
+       -o "${destination_iso}" \
+       . &>/dev/null
+  else
+  xorriso -as mkisofs -r \
+       -V "ubuntu-autoinstall-${release_name}" \
+       -o "${destination_iso}" \
+       --grub2-mbr ../BOOT/1-Boot-NoEmul.img \
+       -partition_offset 16 \
+       --mbr-force-bootable \
+       -append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b ../BOOT/2-Boot-NoEmul.img \
+       -appended_part_as_gpt \
+       -iso_mbr_part_type a2a0d0ebe5b9334487c068b6b72699c7 \
+       -c '/boot.catalog' \
+       -b '/boot/grub/i386-pc/eltorito.img' \
+         -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
+       -eltorito-alt-boot \
+       -e '--interval:appended_partition_2:::' \
+       -no-emul-boot \
+       . &>/dev/null
+  fi
 else
-xorriso -as mkisofs -r \
-     -V "ubuntu-autoinstall-${release_name}" \
-     -o "${destination_iso}" \
-     --grub2-mbr ../BOOT/1-Boot-NoEmul.img \
-     -partition_offset 16 \
-     --mbr-force-bootable \
-     -append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b ../BOOT/2-Boot-NoEmul.img \
-     -appended_part_as_gpt \
-     -iso_mbr_part_type a2a0d0ebe5b9334487c068b6b72699c7 \
-     -c '/boot.catalog' \
-     -b '/boot/grub/i386-pc/eltorito.img' \
-       -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
-     -eltorito-alt-boot \
-     -e '--interval:appended_partition_2:::' \
-     -no-emul-boot \
-     . &>/dev/null
+	die "👿 Verification of iso image format is failed."
 fi
+
 cd "$OLDPWD"
 log "👍 Repackaged into ${destination_iso}"
-
 die "✅ Completed." 0

@@ -1,4 +1,5 @@
-tcpdump
+# Define the name of the package to be downloaded from the Internet
 net-tools
-gcc
-mysql-server
+keepalived
+nginx
+mariadb-server mariadb-client
