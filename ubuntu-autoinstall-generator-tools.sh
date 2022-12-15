@@ -268,7 +268,7 @@ if [ ${packages_name} -eq 1 ]; then
   fi
 
   [ -d "${pkgs_destination_dir}" ] || mkdir -p "${pkgs_destination_dir}"
-       grep -Ev '^[[:space:]].*|^#|^$' $file_name > $tmpdir/$file_name
+       grep -Ev '^#|^$' $file_name > $tmpdir/$file_name
        for line in `cat $tmpdir/$file_name`; do
          log "🌎 Downloading and saving packages ${line}"
          apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances \

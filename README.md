@@ -62,7 +62,7 @@ Available options:
 ```
 ## Example
 ```
-root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n  jammy  -p -f names.txt -d ubuntu-autoinstall-jammytest.iso      
+root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n  jammy  -p -f file-name.txt -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
 [2022-12-14 01:03:12] 🔎 Checking for current release...
 [2022-12-14 01:03:13] 💿 Current release is 22.04.1

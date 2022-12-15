@@ -1,5 +1,5 @@
 # Define the name of the package to be downloaded from the Internet
-net-tools
+ net-tools
 keepalived
 nginx
 mariadb-server mariadb-client
