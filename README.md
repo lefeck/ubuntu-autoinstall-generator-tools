@@ -28,7 +28,7 @@ We all know that each release version number of ubuntu will be mapped to a name,
 ## Basic Usage
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -h
-Usage: ubuntu-autoinstall-generator-tools.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p ] [-f file-name][-k] [-c] [-r] [-d destination-iso-file]
+Usage: ubuntu-autoinstall-generator-tools.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p] [-f file-name] [-k] [-c] [-r] [-d destination-iso-file] [-x] [-s service-dir-name] [-o] [-t task-name]
 
 💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
 
@@ -49,16 +49,22 @@ Available options:
 -p, --packages-name     Bake file-name into the generated ISO. if the package-name is empty，no installation package
                         will be downloaded.
 -f, --file-name         Path to file-name file. Required if using -p
--k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-2022-12-14 and
-                        SHA256SUMS-2022-12-14.gpg in /root/ubuntu20/ubuntu-autoinstall-generator-tools will be used to verify the authenticity and integrity
+-k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-2022-12-16 and
+                        SHA256SUMS-2022-12-16.gpg in /root/ubuntu20/ubuntu-autoinstall-generator-tools will be used to verify the authenticity and integrity
                         of the source ISO file. If they are not present the latest daily SHA256SUMS will be
                         downloaded and saved in /root/ubuntu20/ubuntu-autoinstall-generator-tools. The Ubuntu signing key will be downloaded and
                         saved in a new keyring in /root/ubuntu20/ubuntu-autoinstall-generator-tools
 -c, --no-md5            Disable MD5 checksum on boot
 -r, --use-release-iso   Use the current release ISO instead of the daily ISO. The file will be used if it already
                         exists.
--d, --destination       Destination ISO file. By default /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-autoinstall-2022-12-14.iso will be
+-d, --destination       Destination ISO file. By default /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-autoinstall-2022-12-16.iso will be
                         created, overwriting any existing file.
+-x  --service-dir       Bake service-dir-name into the generated ISO. if service-dir is not specified, no local application
+                        will be uploaded to complete the ISO build.
+-s  --service-dir-name  Path to service-dir-name file. Required if using -x
+-o  --task              Bake task-name into the generated ISO. if task-name is not specified, there will be
+                        no action to change after the service starts.
+-t  --task-name         Path to task-name file. Required if using -o
 ```
 ### Example
 ```
