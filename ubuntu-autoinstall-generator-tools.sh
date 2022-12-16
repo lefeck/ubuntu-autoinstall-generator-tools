@@ -32,7 +32,7 @@ function die() {
 # usage of the command line tool
 usage() {
         cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p ] [-f file-name] [-k] [-c] [-r] [-d destination-iso-file]
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p ] [-f file-name] [-k] [-c] [-r] [-d destination-iso-file] [-x] [-s service-dir-name] [-o] [-t task-name]
 
 💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
 
@@ -63,6 +63,12 @@ Available options:
                         exists.
 -d, --destination       Destination ISO file. By default ${script_dir}/ubuntu-autoinstall-$today.iso will be
                         created, overwriting any existing file.
+-x  --service-dir       Bake service-dir-name into the generated ISO. if service-dir is not specified, no local application
+                        will be uploaded to complete the ISO build.
+-s  --service-dir-name  Path to service-dir-name file. Required if using -x
+-o  --task              Bake task-name into the generated ISO. if task-name is not specified, there will be
+                        no action to change after the service starts.
+-t  --task-name         Path to task-name file. Required if using -o
 EOF
         exit
 }
@@ -82,6 +88,10 @@ function parse_params() {
         use_release_iso=1
         packages_name=0
         file_name=''
+        service_dir=0
+        service_dir_name=''
+        task=0
+        task_name=''
         while :; do
                 case "${1-}" in
                 -h | --help) usage ;;
@@ -92,6 +102,16 @@ function parse_params() {
                 -k | --no-verify) gpg_verify=0 ;;
                 -r | --use-release-iso) use_release_iso=0 ;;
                 -p | --packages-name) packages_name=1 ;;
+                -o | --task) task=1 ;;
+                -x | --service-dir) service_dir=1 ;;
+                -t | --task-name)
+                        task_name="${2-}"
+                        shift
+                        ;;
+                -s | --service-dir-name)
+                        service_dir_name="${2-}"
+                        shift
+                        ;;
                 -n | --release-name)
                         release_name="${2-}"
                         shift
@@ -100,7 +120,7 @@ function parse_params() {
                         file_name="${2-}"
                         shift
                         ;;
-                -u | --user-data.yaml)
+                -u | --user-data)
                         user_data_file="${2-}"
                         shift
                         ;;
@@ -255,12 +275,19 @@ fi
 chmod -R u+w "$tmpdir"
 log "👍 Extracted to $tmpdir"
 
+
 if [ ${packages_name} -eq 1 ]; then
   # Create an extra directory in the $tmpdir directory for other files
   mkdir -p $tmpdir/extra/{pkgs,script}
   pkgs_destination_dir="$tmpdir/extra/pkgs"
   exec_script_dir="$tmpdir/extra/script/"
   script_file="install-pkgs.sh"
+
+  # customer script is used to install dependency packages
+  echo '#!/bin/bash' > ${script_file}
+  echo "# The default installation package will be downloaded to /cdrom/extra/pkgs/ directory" >> ${script_file}
+  echo "dpkg -i /cdrom/extra/pkgs/*.deb" >> ${script_file}
+
   if [ "${script_file##*.}"x = "sh"x ];then
   	  cp "$script_file"  "$exec_script_dir"
   else
@@ -269,13 +296,28 @@ if [ ${packages_name} -eq 1 ]; then
 
   [ -d "${pkgs_destination_dir}" ] || mkdir -p "${pkgs_destination_dir}"
        grep -Ev '^#|^$' $file_name > $tmpdir/$file_name
-       for line in `cat $tmpdir/$file_name`; do
+       read_file=$(cat $tmpdir/$file_name)
+       for line in $read_file; do
          log "🌎 Downloading and saving packages ${line}"
          apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances \
          --no-pre-depends ${line} | grep -v i386 | grep "^\w") &>/dev/null
        done
+       rm $tmpdir/$file_name
+       log "🚽 Deleted temporary file $tmpdir/$file_name."
        mv ${script_dir}/*.deb  ${pkgs_destination_dir}
-       log "👍 downloaded packages and saved to ${pkgs_destination_dir}"
+       log "👍 Downloaded packages and saved to ${pkgs_destination_dir}"
+fi
+
+if [ ${task} -eq 1  ];then
+  cp ${task_name}  $tmpdir/extra/script
+  log "📁 Moving ${task_name} file to temporary working directory $tmpdir/extra/script."
+fi
+
+if [ ${service_dir} -eq 1  ];then
+  [[ ! -d ${service_dir_name} ]] && die "👿 ${service_dir_name} is not a legal directory."
+  varible=${service_dir_name}
+  cp -rf ${varible%%/}  $tmpdir/extra/
+  log "📁 Moving ${varible%%/} directory to temporary working directory $tmpdir/extra/ "
 fi
 
 if [ ${use_hwe_kernel} -eq 1 ]; then
@@ -304,7 +346,7 @@ fi
 
 log "👍 Added parameter to UEFI and BIOS kernel command lines."
 
-# create user-data.yaml and meta-data, then change grub.cfg file
+# create user-data.yml and meta-data, then change grub.cfg file
 if [ ${all_in_one} -eq 1 ]; then
         log "🧩 Adding user-data and meta-data files..."
         #mkdir "$tmpdir/nocloud"

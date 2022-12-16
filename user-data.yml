@@ -117,10 +117,17 @@ autoinstall:
       id: mount-0
     swap:
       swap: 0
+    grub:
+      # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
+      reorder_uefi: False
   version: 1
   late-commands:
     # create ISO directory to  mount
     - mkdir -p /target/cdrom
     - cp -r /cdrom/extra /target/cdrom
-    - chmod +x  /target/cdrom/extra/script/install-pkgs.sh
     - curtin in-target --target=/target -- /cdrom/extra/script/install-pkgs.sh
+  user-data:
+    disable_root: false
+    timezone: Asia/Shanghai
+    power_state:
+      mode: reboot
