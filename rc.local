@@ -1,30 +1,52 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 #This script will be executed *after* all the other init scripts.
 #You can put your own initialization stuff in here if you don't
 #want to do the full Sys V style init stuff.
 
-set -Eeuo pipefail
+#set -Eeuo pipefail
 
-file="/etc/rc.local"
-
-function cleanup() {
-        trap - SIGINT SIGTERM ERR EXIT
-        if [  -s ${file} ]; then
-                cat /dev/null > ${file}
-                log "🚽 Emptying files $file"
-        fi
-}
-
-#trap cleanup SIGINT SIGTERM ERR EXIT
+#file="/etc/rc.local"
 
 # the following functions are used for logging purposes and are not recommended to be modified
-# set variable value
+# set extraiable value
 DATE=`date "+%Y-%m-%d %H:%M:%S"`
 USER=`whoami`
 HOST_NAME=`hostname`
-LOG_FILE="/var/log/rc-local.log"
-#script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+LOG_FILE="/extra/log/rc-local.log"
+
+# Execution successful log printing path
+function log_info () {
+    echo "${DATE} ${HOST_NAME} ${USER} execute $0 [INFO] $@" >> ${LOG_FILE}
+}
+
+# Execution successful ⚠️ warning log print path
+function log_warn () {
+    echo "${DATE} ${HOST_NAME} ${USER} execute $0 [WARN] $@" >> ${LOG_FILE}
+}
+
+# Execution failure log print path
+function log_error () {
+    echo -e "\033[41;37m ${DATE} ${HOST_NAME} ${USER} execute $0 [ERROR] $@ \033[0m"  >> ${LOG_FILE}
+}
+
+function fn_log ()  {
+    if [  $? -eq 0  ]
+    then
+            log_info "👍 $@ sucessed."
+            echo -e "\033[32m $@ sucessed. \033[0m"
+    else
+            log_error "👿 $@ failed."
+            echo -e "\033[41;37m $@ failed. \033[0m"
+            exit 1
+    fi
+}
+# the following functions are used for logging purposes and are not recommended to be modified
+# set extraiable value
+DATE=`date "+%Y-%m-%d %H:%M:%S"`
+USER=`whoami`
+HOST_NAME=`hostname`
+LOG_FILE="/extra/log/rc-local.log"
 
 # Execution successful log printing path
 function log_info () {
@@ -56,38 +78,28 @@ function fn_log ()  {
 # this is an example of password mysql change
 mysql_user="root"
 # default password is null
-mysql_password=""
-new_mysql_password="ubuntu"
+mysql_password="123456"
+new_mysql_password="MsTac@2001"
 while true; do
-    processNum=`ps aux | grep mysqld | grep -v grep | wc -l`;
+    processNum=`ps aux | grep mysql | grep -v grep | wc -l`;
     # change mysql password
     if [ $processNum -ne 0 ]; then
-      # select host, user, authentication_string from user where user="root";
-
-      # authentication_string is not empty
-      #use mysql;
-      #update user set authentication_string='' where user='root';
-      #ALTER user 'root'@'localhost' IDENTIFIED BY 'root';
-
-      # authentication_string is empty, note： only mysql initable do once it
-      mysql -e  "ALTER USER 'root'@'localhost' IDENTIFIED BY ${new_mysql_password};" -u${mysql_user} -p${mysql_password}
-      fn_log "change mysql password"
-
-      # mysql version is less than 8.0, the execute follow command
-      #mysql -e  "grant all privileges on *.* to 'root'@'%' identified by 'lab123' with grant option;" -u${mysql_user} -p${mysql_password}
-
-      # mysql version is greater than 8.0, execute the following command， note： only mysql initable do once it
-      mysql -e  "create user 'root'@'%' identified by 'ubuntu';" -u${mysql_user} -p${mysql_password}
-      fn_log "mysql create remote user access"
-      mysql -e  "grant all privileges on *.* to 'root'@'%' with grant option;" -u${mysql_user} -p${mysql_password}
-      fn_log "mysql privileges remote user access"
-
-      mysql -e  "flush privileges;" -u${mysql_user} -p${mysql_password}
-      mysql -e  "commit;" -u${mysql_user} -p${mysql_password}
-      fn_log "update mysql password success"
+      log_info "waiting for 3s"
+      sleep 3
+      sudo mysql -u${mysql_user} -p${mysql_password}  << EOF
+      GRANT ALL ON *.* TO 'root'@'%' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
+      GRANT ALL ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
+      GRANT ALL ON *.* TO 'root'@'localhost' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
+      FLUSH PRIVILEGES;
+      commit;
+EOF
+      fn_log "Update mysql password"
       break
     else
-      sleep 1
+      sleep 3
+      log_info "waiting for 3s"
     fi
 done
-log_info "✅ Completed." 0
+rm  -f ${file}
+fn_log "Clean files ${file}"
+exit 0

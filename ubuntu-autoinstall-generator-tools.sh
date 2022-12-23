@@ -75,7 +75,7 @@ EOF
 
 
 function parse_params() {
-        # default values of variables set from params
+        # default values of extraiables set from params
         release_name=''
         user_data_file=''
         meta_data_file=''
@@ -222,7 +222,6 @@ else
         fi
 fi
 
-
 # cheak ISO md5
 if [ ${gpg_verify} -eq 1 ]; then
         if [ ! -f "${script_dir}/SHA256SUMS-${sha_suffix}" ]; then
@@ -275,49 +274,62 @@ fi
 chmod -R u+w "$tmpdir"
 log "👍 Extracted to $tmpdir"
 
-
 if [ ${packages_name} -eq 1 ]; then
   # Create an extra directory in the $tmpdir directory for other files
-  mkdir -p $tmpdir/extra/{pkgs,script}
-  pkgs_destination_dir="$tmpdir/extra/pkgs"
+  mkdir -p $tmpdir/extra/{packages,script}
+  pkgs_destination_dir="$tmpdir/extra/packages"
   exec_script_dir="$tmpdir/extra/script/"
   script_file="install-pkgs.sh"
 
   # customer script is used to install dependency packages
-  echo '#!/bin/bash' > ${script_file}
-  echo "# The default installation package will be downloaded to /cdrom/extra/pkgs/ directory" >> ${script_file}
-  echo "dpkg -i /cdrom/extra/pkgs/*.deb" >> ${script_file}
-
-  if [ "${script_file##*.}"x = "sh"x ];then
-  	  cp "$script_file"  "$exec_script_dir"
-  else
-  	  die "👿 Verification of script file failed."
-  fi
-
-  [ -d "${pkgs_destination_dir}" ] || mkdir -p "${pkgs_destination_dir}"
-       grep -Ev '^#|^$' $file_name > $tmpdir/$file_name
-       read_file=$(cat $tmpdir/$file_name)
+  grep -Ev '^#|^$' $file_name > $tmpdir/$file_name
+  read_file=$(cat $tmpdir/$file_name)
+       [ -d "${pkgs_destination_dir}" ] || mkdir -p "${pkgs_destination_dir}"
        for line in $read_file; do
          log "🌎 Downloading and saving packages ${line}"
          apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances \
          --no-pre-depends ${line} | grep -v i386 | grep "^\w") &>/dev/null
+         mv ${script_dir}/*.deb ${pkgs_destination_dir}
+         log "👍 Downloaded and saved the ${line} packages to ${pkgs_destination_dir}/${line}"
        done
+        #创建本地软件源的index文件:
+        cd ${pkgs_destination_dir}
+        dpkg-scanpackages ./  &>/dev/null  | gzip -9c > Packages.gz
+        apt-ftparchive packages ./ > Packages
+        apt-ftparchive release ./ > Release
+
+        echo '#!/bin/bash' > ${script_file}
+        echo "# The default installation package will be downloaded to /cdrom/extra/packages/ directory" >> ${script_file}
+#        echo "cp -r /cdrom/extra/packages/* /extra/packages/" >> ${script_file}
+        echo "cp /etc/apt/sources.list /etc/apt/sources.list.bak" >> ${script_file}
+        echo 'echo 'deb [trusted=yes] file:///cdrom/extra/packages/   ./' > /etc/apt/sources.list' >> ${script_file}
+        echo 'apt-get update' >> ${script_file}
+        for name in $read_file; do
+          echo "apt-get install -y ${name}" >> ${script_file}
+        done
+
+        if [ "${script_file##*.}"x = "sh"x ];then
+             chmod +x "$script_file"
+             mv "$script_file"  "$exec_script_dir"
+        else
+             die "👿 Verification of script file failed."
+        fi
+        cd  ${script_dir}
        rm $tmpdir/$file_name
        log "🚽 Deleted temporary file $tmpdir/$file_name."
-       mv ${script_dir}/*.deb  ${pkgs_destination_dir}
-       log "👍 Downloaded packages and saved to ${pkgs_destination_dir}"
 fi
 
 if [ ${task} -eq 1  ];then
-  cp ${task_name}  $tmpdir/extra/script
+  cp -p ${task_name}  $tmpdir
+  cp rc-local.service $tmpdir
   log "📁 Moving ${task_name} file to temporary working directory $tmpdir/extra/script."
 fi
 
 if [ ${service_dir} -eq 1  ];then
   [[ ! -d ${service_dir_name} ]] && die "👿 ${service_dir_name} is not a legal directory."
-  varible=${service_dir_name}
-  cp -rf ${varible%%/}  $tmpdir/extra/
-  log "📁 Moving ${varible%%/} directory to temporary working directory $tmpdir/extra/ "
+  extraible=${service_dir_name}
+  cp -rf ${extraible%%/}  $tmpdir/extra/
+  log "📁 Moving ${extraible%%/} directory to temporary working directory $tmpdir/extra/ "
 fi
 
 if [ ${use_hwe_kernel} -eq 1 ]; then

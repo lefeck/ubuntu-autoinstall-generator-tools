@@ -16,7 +16,7 @@ autoinstall:
   keyboard:
     layout: gb
     toggle: null
-    variant: ''
+    extraiant: ''
   locale: en_GB.UTF-8
   storage:
     config:

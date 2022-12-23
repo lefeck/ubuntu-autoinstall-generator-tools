@@ -17,7 +17,7 @@ autoinstall:
     install: false
   identity:
     hostname: ubuntu
-    # default password: 123456
+    # default password: 12345
     password: $6$FnHPy.4giHfDcI8r$vllY94AceZFt20M6WzxXKfOLuycO7o8QD8RJJwVs/DSGcHNNF4ilbGrukXPMA3irAdiimHo0fl2zUdkbRO9vh1
     realname: ubuntu
     username: ubuntu
@@ -32,8 +32,8 @@ autoinstall:
     ethernets:
       ens160:
         addresses:
-        - 192.168.6.100/24
-        gateway4: 192.168.6.1
+        - 192.168.10.104/24
+        gateway4: 192.168.10.1
         nameservers:
           addresses:
           - 114.114.114.114
@@ -121,13 +121,18 @@ autoinstall:
       # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
       reorder_uefi: False
   version: 1
+  timezone: Asia/Shanghai
   late-commands:
-    # create ISO directory to  mount
     - mkdir -p /target/cdrom
-    - cp -r /cdrom/extra /target/cdrom
+    - cp -rp /cdrom/extra /target/cdrom
+    - chmod +x /target/cdrom/extra/script/install-pkgs.sh
     - curtin in-target --target=/target -- /cdrom/extra/script/install-pkgs.sh
-  user-data:
-    disable_root: false
-    timezone: Asia/Shanghai
-    power_state:
-      mode: reboot
+    - cp -rp /cdrom/extra/wsaiso /target/opt
+    - cp /cdrom/extra/wsaiso/wsa.service /target/lib/systemd/system
+    - curtin in-target --target=/target -- ln -sn /lib/systemd/system/wsa.service /etc/systemd/system/wsa.service
+    - systemctl daemon-reload
+    - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
+    - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
+    - cp -p /cdrom/rc.local /target/etc/rc.local
+    - chmod +x /target/etc/rc.local
+    - systemctl daemon-reload
