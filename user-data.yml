@@ -123,14 +123,13 @@ autoinstall:
   version: 1
   timezone: Asia/Shanghai
   late-commands:
-    - mkdir -p /target/cdrom
-    - cp -rp /cdrom/extra /target/cdrom
-    - chmod +x /target/cdrom/extra/script/install-pkgs.sh
-    - curtin in-target --target=/target -- /cdrom/extra/script/install-pkgs.sh
-    - cp -rp /cdrom/extra/wsaiso /target/opt
-    - cp /cdrom/extra/wsaiso/wsa.service /target/lib/systemd/system
-    - curtin in-target --target=/target -- ln -sn /lib/systemd/system/wsa.service /etc/systemd/system/wsa.service
-    - systemctl daemon-reload
+#    - mkdir -p /target/etc/mysql/mariadb.conf.d/
+#    - cp /cdrom/50-server.cnf /target/etc/mysql/mariadb.conf.d/50-server.cnf
+    - cp -rp /cdrom/mnt /target/
+    - chmod +x /target/mnt/script/install-pkgs.sh
+    - chmod +x /target/mnt/script/config.sh
+    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+    - curtin in-target --target=/target -- /mnt/script/config.sh
     - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
     - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
     - cp -p /cdrom/rc.local /target/etc/rc.local

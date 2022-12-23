@@ -46,7 +46,7 @@ function fn_log ()  {
 DATE=`date "+%Y-%m-%d %H:%M:%S"`
 USER=`whoami`
 HOST_NAME=`hostname`
-LOG_FILE="/extra/log/rc-local.log"
+LOG_FILE="/var/log/rc-local.log"
 
 # Execution successful log printing path
 function log_info () {

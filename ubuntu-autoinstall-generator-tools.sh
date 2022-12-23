@@ -53,6 +53,7 @@ Available options:
 -p, --packages-name     Bake file-name into the generated ISO. if the package-name is empty，no installation package
                         will be downloaded.
 -f, --file-name         Path to file-name file. Required if using -p
+-i, --config-data       Path to config-data file. Required if using -p
 -k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-$today and
                         SHA256SUMS-$today.gpg in ${script_dir} will be used to verify the authenticity and integrity
                         of the source ISO file. If they are not present the latest daily SHA256SUMS will be
@@ -75,7 +76,7 @@ EOF
 
 
 function parse_params() {
-        # default values of extraiables set from params
+        # default values of variables set from params
         release_name=''
         user_data_file=''
         meta_data_file=''
@@ -92,6 +93,7 @@ function parse_params() {
         service_dir_name=''
         task=0
         task_name=''
+        config_data_file=''
         while :; do
                 case "${1-}" in
                 -h | --help) usage ;;
@@ -118,6 +120,10 @@ function parse_params() {
                         ;;
                 -f | --file-name)
                         file_name="${2-}"
+                        shift
+                        ;;
+                -i | --config-data)
+                        config_data_file="${2-}"
                         shift
                         ;;
                 -u | --user-data)
@@ -275,10 +281,10 @@ chmod -R u+w "$tmpdir"
 log "👍 Extracted to $tmpdir"
 
 if [ ${packages_name} -eq 1 ]; then
-  # Create an extra directory in the $tmpdir directory for other files
-  mkdir -p $tmpdir/extra/{packages,script}
-  pkgs_destination_dir="$tmpdir/extra/packages"
-  exec_script_dir="$tmpdir/extra/script/"
+  # Create an mnt directory in the $tmpdir directory for other files
+  mkdir -p $tmpdir/mnt/{packages,script}
+  pkgs_destination_dir="$tmpdir/mnt/packages"
+  exec_script_dir="$tmpdir/mnt/script/"
   script_file="install-pkgs.sh"
 
   # customer script is used to install dependency packages
@@ -299,10 +305,9 @@ if [ ${packages_name} -eq 1 ]; then
         apt-ftparchive release ./ > Release
 
         echo '#!/bin/bash' > ${script_file}
-        echo "# The default installation package will be downloaded to /cdrom/extra/packages/ directory" >> ${script_file}
-#        echo "cp -r /cdrom/extra/packages/* /extra/packages/" >> ${script_file}
+        echo "# The default installation package will be downloaded to /cdrom/mnt/packages/ directory" >> ${script_file}
         echo "cp /etc/apt/sources.list /etc/apt/sources.list.bak" >> ${script_file}
-        echo 'echo 'deb [trusted=yes] file:///cdrom/extra/packages/   ./' > /etc/apt/sources.list' >> ${script_file}
+        echo 'echo 'deb [trusted=yes] file:///mnt/packages/   ./' > /etc/apt/sources.list' >> ${script_file}
         echo 'apt-get update' >> ${script_file}
         for name in $read_file; do
           echo "apt-get install -y ${name}" >> ${script_file}
@@ -315,21 +320,30 @@ if [ ${packages_name} -eq 1 ]; then
              die "👿 Verification of script file failed."
         fi
         cd  ${script_dir}
-       rm $tmpdir/$file_name
-       log "🚽 Deleted temporary file $tmpdir/$file_name."
+
+        log "🧩 Adding config-data files..."
+        if [ -n "$config_data_file" ]; then
+            chmod +x "$config_data_file"
+            mv  "$config_data_file" "$exec_script_dir"
+        else
+            echo "not is exist $meta_data_file "
+        fi
+
+        rm $tmpdir/$file_name
+        log "🚽 Deleted temporary file $tmpdir/$file_name."
 fi
 
 if [ ${task} -eq 1  ];then
   cp -p ${task_name}  $tmpdir
   cp rc-local.service $tmpdir
-  log "📁 Moving ${task_name} file to temporary working directory $tmpdir/extra/script."
+  log "📁 Moving ${task_name} file to temporary working directory $tmpdir/mnt/script."
 fi
 
 if [ ${service_dir} -eq 1  ];then
   [[ ! -d ${service_dir_name} ]] && die "👿 ${service_dir_name} is not a legal directory."
-  extraible=${service_dir_name}
-  cp -rf ${extraible%%/}  $tmpdir/extra/
-  log "📁 Moving ${extraible%%/} directory to temporary working directory $tmpdir/extra/ "
+  varible=${service_dir_name}
+  cp -rf ${varible%%/}  $tmpdir/mnt/
+  log "📁 Moving ${varible%%/} directory to temporary working directory $tmpdir/mnt/ "
 fi
 
 if [ ${use_hwe_kernel} -eq 1 ]; then
