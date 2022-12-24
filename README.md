@@ -257,7 +257,7 @@ function fn_log ()  {
 # this is an example of password mysql change
 mysql_user="root"
 # default password is null
-mysql_password=""
+mysql_password="123456"
 new_mysql_password="MsTac@2001"
 while true; do
     processNum=`ps aux | grep mysql | grep -v grep | wc -l`;
