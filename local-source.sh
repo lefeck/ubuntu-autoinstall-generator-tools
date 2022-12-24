@@ -32,3 +32,22 @@ bash -x ubuntu-autoinstall-generator-tools.sh -a  -u user-data.yml -n  jammy  -p
         - cp /cdrom/mnt/wsaiso/wsa.service /target/lib/systemd/system
         - curtin in-target --target=/target -- ln -sn /lib/systemd/system/wsa.service /etc/systemd/system/wsa.service
         - systemctl daemon-reload
+
+
+all whole
+
+    - cp -rp /cdrom/mnt /target/
+    - chmod +x /target/mnt/script/install-pkgs.sh
+    - chmod +x /target/mnt/script/config.sh
+    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+#    - curtin in-target --target=/target -- /mnt/script/config.sh
+    - curtin in-target --target=/target -- cp /mnt/template.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+    - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
+    - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
+    - cp -p /cdrom/rc.local /target/etc/rc.local
+    - chmod +x /target/etc/rc.local
+    - systemctl daemon-reload
+    - cp -rp /cdrom/mnt/wsa /target/opt
+    - cp /cdrom/mnt/wsa/wsa.service /target/lib/systemd/system
+    - curtin in-target --target=/target -- ln -sn /lib/systemd/system/wsa.service /etc/systemd/system/wsa.service
+    - systemctl daemon-reload

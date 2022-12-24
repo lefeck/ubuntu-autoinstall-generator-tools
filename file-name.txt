@@ -1,3 +1,6 @@
 # Define the name of the package to be downloaded from the Internet
  net-tools
 mariadb-server
+gcc
+keepalived
+samba samba-common

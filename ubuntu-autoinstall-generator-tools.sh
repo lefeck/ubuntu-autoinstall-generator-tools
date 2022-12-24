@@ -32,7 +32,7 @@ function die() {
 # usage of the command line tool
 usage() {
         cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p ] [-f file-name] [-k] [-c] [-r] [-d destination-iso-file] [-x] [-s service-dir-name] [-o] [-t task-name]
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p ] [-f file-name] [-c config-data] [-t temaplate-config] [-k] [-o] [-r] [-d destination-iso-file] [-x] [-s service-dir-name] [-i] [-j job-name]
 
 💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
 
@@ -53,13 +53,14 @@ Available options:
 -p, --packages-name     Bake file-name into the generated ISO. if the package-name is empty，no installation package
                         will be downloaded.
 -f, --file-name         Path to file-name file. Required if using -p
--i, --config-data       Path to config-data file. Required if using -p
+-c, --config-data       Path to config-data file. Required if using -p
+-t  --temaplate-config  Path to temaplate-config file. Required if using -p
 -k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-$today and
                         SHA256SUMS-$today.gpg in ${script_dir} will be used to verify the authenticity and integrity
                         of the source ISO file. If they are not present the latest daily SHA256SUMS will be
                         downloaded and saved in ${script_dir}. The Ubuntu signing key will be downloaded and
                         saved in a new keyring in ${script_dir}
--c, --no-md5            Disable MD5 checksum on boot
+-o, --no-md5            Disable MD5 checksum on boot
 -r, --use-release-iso   Use the current release ISO instead of the daily ISO. The file will be used if it already
                         exists.
 -d, --destination       Destination ISO file. By default ${script_dir}/ubuntu-autoinstall-$today.iso will be
@@ -67,9 +68,9 @@ Available options:
 -x  --service-dir       Bake service-dir-name into the generated ISO. if service-dir is not specified, no local application
                         will be uploaded to complete the ISO build.
 -s  --service-dir-name  Path to service-dir-name file. Required if using -x
--o  --task              Bake task-name into the generated ISO. if task-name is not specified, there will be
+-i  --all-in-one-job   Bake job-name into the generated ISO. if job-name is not specified, there will be
                         no action to change after the service starts.
--t  --task-name         Path to task-name file. Required if using -o
+-j  --job-name         Path to job-name file. Required if using -i
 EOF
         exit
 }
@@ -91,23 +92,24 @@ function parse_params() {
         file_name=''
         service_dir=0
         service_dir_name=''
-        task=0
-        task_name=''
+        all_in_one_job=0
+        job_name=''
         config_data_file=''
+        temaplate_config_file=''
         while :; do
                 case "${1-}" in
                 -h | --help) usage ;;
                 -v | --verbose) set -x ;;
                 -a | --all-in-one) all_in_one=1 ;;
                 -e | --use-hwe-kernel) use_hwe_kernel=1 ;;
-                -c | --no-md5) md5_checksum=0 ;;
+                -o | --no-md5) md5_checksum=0 ;;
                 -k | --no-verify) gpg_verify=0 ;;
                 -r | --use-release-iso) use_release_iso=0 ;;
                 -p | --packages-name) packages_name=1 ;;
-                -o | --task) task=1 ;;
+                -i | --all-in-one-job) all_in_one_job=1 ;;
                 -x | --service-dir) service_dir=1 ;;
-                -t | --task-name)
-                        task_name="${2-}"
+                -j | --job-name)
+                        job_name="${2-}"
                         shift
                         ;;
                 -s | --service-dir-name)
@@ -122,8 +124,12 @@ function parse_params() {
                         file_name="${2-}"
                         shift
                         ;;
-                -i | --config-data)
+                -c | --config-data)
                         config_data_file="${2-}"
+                        shift
+                        ;;
+                -t | --temaplate-config)
+                        temaplate_config_file="${2-}"
                         shift
                         ;;
                 -u | --user-data)
@@ -324,25 +330,32 @@ if [ ${packages_name} -eq 1 ]; then
         log "🧩 Adding config-data files..."
         if [ -n "$config_data_file" ]; then
             chmod +x "$config_data_file"
-            mv  "$config_data_file" "$exec_script_dir"
+            cp -rp  "$config_data_file" "$exec_script_dir"
         else
-            echo "not is exist $meta_data_file "
+            echo "No $meta_data_file config profile available."
+        fi
+
+        log "🧩 Adding template-config files..."
+        if [ -n "$temaplate_config_file" ]; then
+            cp -rp  "$temaplate_config_file" "$tmpdir/mnt"
+        else
+            echo "No $meta_data_file template profile available."
         fi
 
         rm $tmpdir/$file_name
         log "🚽 Deleted temporary file $tmpdir/$file_name."
 fi
 
-if [ ${task} -eq 1  ];then
-  cp -p ${task_name}  $tmpdir
+if [ ${all_in_one_job} -eq 1  ];then
+  cp -p ${job_name}  $tmpdir
   cp rc-local.service $tmpdir
-  log "📁 Moving ${task_name} file to temporary working directory $tmpdir/mnt/script."
+  log "📁 Moving ${job_name} file to temporary working directory $tmpdir/mnt/script."
 fi
 
 if [ ${service_dir} -eq 1  ];then
   [[ ! -d ${service_dir_name} ]] && die "👿 ${service_dir_name} is not a legal directory."
   varible=${service_dir_name}
-  cp -rf ${varible%%/}  $tmpdir/mnt/
+  cp -rp ${varible%%/}  $tmpdir/mnt/
   log "📁 Moving ${varible%%/} directory to temporary working directory $tmpdir/mnt/ "
 fi
 

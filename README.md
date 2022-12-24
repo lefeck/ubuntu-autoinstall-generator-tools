@@ -28,7 +28,7 @@ We all know that each release version number of ubuntu will be mapped to a name,
 ## Basic Usage
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -h
-Usage: ubuntu-autoinstall-generator-tools.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p] [-f file-name] [-k] [-c] [-r] [-d destination-iso-file] [-x] [-s service-dir-name] [-o] [-t task-name]
+Usage: ubuntu-autoinstall-generator-tools.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p ] [-f file-name] [-c config-data] [-t temaplate-config] [-k] [-o] [-r] [-d destination-iso-file] [-x] [-s service-dir-name] [-i] [-j job-name]
 
 💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
 
@@ -49,22 +49,24 @@ Available options:
 -p, --packages-name     Bake file-name into the generated ISO. if the package-name is empty，no installation package
                         will be downloaded.
 -f, --file-name         Path to file-name file. Required if using -p
--k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-2022-12-16 and
-                        SHA256SUMS-2022-12-16.gpg in /root/ubuntu20/ubuntu-autoinstall-generator-tools will be used to verify the authenticity and integrity
+-c, --config-data       Path to config-data file. Required if using -p
+-t  --temaplate-config  Path to temaplate-config file. Required if using -p
+-k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-2022-12-24 and
+                        SHA256SUMS-2022-12-24.gpg in /root/ubuntu20/ubuntu-autoinstall-generator-tools will be used to verify the authenticity and integrity
                         of the source ISO file. If they are not present the latest daily SHA256SUMS will be
                         downloaded and saved in /root/ubuntu20/ubuntu-autoinstall-generator-tools. The Ubuntu signing key will be downloaded and
                         saved in a new keyring in /root/ubuntu20/ubuntu-autoinstall-generator-tools
--c, --no-md5            Disable MD5 checksum on boot
+-o, --no-md5            Disable MD5 checksum on boot
 -r, --use-release-iso   Use the current release ISO instead of the daily ISO. The file will be used if it already
                         exists.
--d, --destination       Destination ISO file. By default /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-autoinstall-2022-12-16.iso will be
+-d, --destination       Destination ISO file. By default /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-autoinstall-2022-12-24.iso will be
                         created, overwriting any existing file.
 -x  --service-dir       Bake service-dir-name into the generated ISO. if service-dir is not specified, no local application
                         will be uploaded to complete the ISO build.
 -s  --service-dir-name  Path to service-dir-name file. Required if using -x
--o  --task              Bake task-name into the generated ISO. if task-name is not specified, there will be
+-i  --all-in-one-job   Bake job-name into the generated ISO. if job-name is not specified, there will be
                         no action to change after the service starts.
--t  --task-name         Path to task-name file. Required if using -o
+-j  --job-name         Path to job-name file. Required if using -i
 ```
 ### Example
 ```
@@ -101,8 +103,26 @@ Now you can boot your target machine using ubuntu-autoinstall-jammy.iso and it w
 
 When you just download the installation package from the Internet, you do not have to modify the configuration file of the installation package, just specify -f
 ###  Example
+first，you shoule be configure the file-name.txt of the installation packages names, for example:
+```text
+# Define the name of the package to be downloaded from the Internet
+ net-tools
+mariadb-server
+gcc
+keepalived
+samba samba-common
 ```
-root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n  jammy  -p -f file-name.txt -d ubuntu-autoinstall-jammytest.iso      
+Then you also need to add the following parameter to the late-command configuration field in user-data, for example:
+Note: that the parameters are fixed and are not allowed to be modified
+```yaml
+  late-commands:
+    - cp -rp /cdrom/mnt /target/
+    - chmod +x /target/mnt/script/install-pkgs.sh
+    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+```
+lately, 
+```
+root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
 [2022-12-14 01:03:12] 🔎 Checking for current release...
 [2022-12-14 01:03:13] 💿 Current release is 22.04.1
@@ -133,13 +153,66 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 [2022-12-14 01:16:38] 🚽 Deleted temporary working directory /tmp/tmp.OYliQ5b0VL
 ```
 
+### Download the installation package, and modify it before the APP Service is started.
+When you specify -f in your script to download the dependencies from the Internet, If you want to change the default values of the configuration file through a template or command before starting the service.
+
+###  Example
+The following is an example of a mysql config file change operation, Three flexible methods are provided here, choose any one of them.
+
+#### 1. You can modify the configuration file by using the linux command, for example:
+Note: Except for the sed command line, which can be changed, other commands are not allowed.
+```yaml
+  late-commands:
+    - cp -rp /cdrom/mnt /target/
+    - chmod +x /target/mnt/script/install-pkgs.sh
+    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+    - sed -i '/^bind-address/c\port = 13306' /target/etc/mysql/mariadb.conf.d/50-server.cnf
+    - sed -i '/^#key_buffer_size/c\key_buffer_size = 128M' /target/etc/mysql/mariadb.conf.d/50-server.cnf
+```
+#### 2. You can modify the configration file by useing the shell script, use the following methods
+
+You should custom configure the config.sh script, and then reference it in the late-command, for example:
+```sh
+#!/bin/bash
+#
+sed -i '/^bind-address/c\port = 13306' /etc/mysql/mariadb.conf.d/50-server.cnf
+sed -i '/^#key_buffer_size/c\key_buffer_size = 128M' /etc/mysql/mariadb.conf.d/50-server.cnf
+sed -i '/^#max_allowed_packet/c\max_allowed_packet = 1G' /etc/mysql/mariadb.conf.d/50-server.cnf
+sed -i '/^#thread_stack/c\thread_stack = 512K' /etc/mysql/mariadb.conf.d/50-server.cnf
+sed -i '/^#thread_cache_size/c\thread_cache_size = 16' /etc/mysql/mariadb.conf.d/50-server.cnf
+```
+Note: that the parameters are fixed and are not allowed to be modified
+```yaml
+    - cp -rp /cdrom/mnt /target/
+    - chmod +x /target/mnt/script/install-pkgs.sh
+    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+    - chmod +x /target/mnt/script/config.sh
+    - curtin in-target --target=/target -- /mnt/script/config.sh
+```
+
+#### 3. You can modify the configration file by useing the template file
+You need to make a copy of the template configuration file beforehand, and modify it to your desired state, and then reference it in the late-command, for example:
+
+Here I am using the database template file is template.cnf， Not in the specific display content
+
+Note: Except for the source and destination configuration files of the template file, which can be changed, nothing else is allowed
+```yaml
+    - cp -rp /cdrom/mnt /target/
+    - chmod +x /target/mnt/script/install-pkgs.sh
+    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+    - chmod +x /target/mnt/script/config.sh
+    - curtin in-target --target=/target -- /mnt/script/config.sh
+    - curtin in-target --target=/target -- cp /mnt/template.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+```
+
+
 ### Download the installation package, and modify it after the APP Service is started.
 When you specify -f in your script to download the dependencies from the Internet, if you need to make changes after the image is installed and the service status is running, then you need to customize the script parameters in the rc.local file.
 
 ###  Example
 The following is an example of a mysql password change operation
 ```sh
-#!/bin/sh
+#!/bin/bash
 
 #This script will be executed *after* all the other init scripts.
 #You can put your own initialization stuff in here if you don't
@@ -147,56 +220,87 @@ The following is an example of a mysql password change operation
 
 file="/etc/rc.local"
 
-function cleanup() {
-        trap - SIGINT SIGTERM ERR EXIT
-        if [  -s ${file} ]; then
-                cat /dev/null > ${file}
-                log "🚽 Emptying files $file"
-        fi
+# the following functions are used for logging purposes and are not recommended to be modified
+# set extraiable value
+DATE=`date "+%Y-%m-%d %H:%M:%S"`
+USER=`whoami`
+HOST_NAME=`hostname`
+LOG_FILE="/extra/log/rc-local.log"
+
+# Execution successful log printing path
+function log_info () {
+    echo "${DATE} ${HOST_NAME} ${USER} execute $0 [INFO] $@" >> ${LOG_FILE}
 }
 
-# when quit clean file
-trap cleanup SIGINT SIGTERM ERR EXIT
+# Execution successful ⚠️ warning log print path
+function log_warn () {
+    echo "${DATE} ${HOST_NAME} ${USER} execute $0 [WARN] $@" >> ${LOG_FILE}
+}
+
+# Execution failure log print path
+function log_error () {
+    echo -e "\033[41;37m ${DATE} ${HOST_NAME} ${USER} execute $0 [ERROR] $@ \033[0m"  >> ${LOG_FILE}
+}
+
+function fn_log ()  {
+    if [  $? -eq 0  ]
+    then
+            log_info "👍 $@ sucessed."
+            echo -e "\033[32m $@ sucessed. \033[0m"
+    else
+            log_error "👿 $@ failed."
+            echo -e "\033[41;37m $@ failed. \033[0m"
+            exit 1
+    fi
+}
 
 # this is an example of password mysql change
 mysql_user="root"
 # default password is null
 mysql_password=""
-new_mysql_password="ubuntu"
+new_mysql_password="MsTac@2001"
 while true; do
-    processNum=`ps aux | grep mysqld | grep -v grep | wc -l`;
+    processNum=`ps aux | grep mysql | grep -v grep | wc -l`;
     # change mysql password
     if [ $processNum -ne 0 ]; then
-      # select host, user, authentication_string from user where user="root";
-
-      # authentication_string is empty, note： only mysql initable do once it
-      mysql -e  "ALTER USER 'root'@'localhost' IDENTIFIED BY ${new_mysql_password};" -u${mysql_user} -p${mysql_password}
-
-      # mysql version is less than 8.0, the execute follow command
-      #mysql -e  "grant all privileges on *.* to 'root'@'%' identified by 'lab123' with grant option;" -u${mysql_user} -p${mysql_password}
-
-      # mysql version is greater than 8.0, execute the following command， note： only mysql initable do once it
-      mysql -e  "create user 'root'@'%' identified by 'ubuntu';" -u${mysql_user} -p${mysql_password}
-      mysql -e  "grant all privileges on *.* to 'root'@'%' with grant option;" -u${mysql_user} -p${mysql_password}
-
-      mysql -e  "flush privileges;" -u${mysql_user} -p${mysql_password}
-      mysql -e  "commit;" -u${mysql_user} -p${mysql_password}
-      if [[ $? -eq 0 ]]; then
-          echo "update mysql password success" > /usr/local/mysql.log
-      else
-          echo "update mysql password failed" > /usr/local/mysql.log
-      fi
+      log_info "waiting for 3s"
+      sleep 2
+      sudo mysql -u${mysql_user} -p${mysql_password}  << EOF
+      GRANT ALL ON *.* TO 'root'@'%' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
+      GRANT ALL ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
+      GRANT ALL ON *.* TO 'root'@'localhost' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
+      FLUSH PRIVILEGES;
+      commit;
+EOF
+      fn_log "Update mysql password"
       break
     else
-       sleep 1
+      sleep 2
+      log_info "waiting for 3s"
     fi
 done
-echo "✅ Completed." 0
+rm  -f ${file}
+fn_log "Clean files ${file}"
+exit 0
+```
+Then you also need to add the following parameter to the late-command configuration field in user-data, for example:
+Note: that the parameters are fixed and are not allowed to be modified.
+```yaml
+  late-commands:
+    - cp -rp /cdrom/mnt /target/
+    - chmod +x /target/mnt/script/install-pkgs.sh
+    - chmod +x /target/mnt/script/config.sh
+    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+    - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
+    - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
+    - cp -p /cdrom/rc.local /target/etc/rc.local
+    - chmod +x /target/etc/rc.local
+    - systemctl daemon-reload
 ```
 
-you needed to specify -t parameter of the task file, that the file name can be customized,
+lately, you needed to specify -j parameter of the task file, that the file name can be customized,
 ```
-root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -o -t rc.local  -d ubuntu-autoinstall-jammytest.iso  
+root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -i -j rc.local  -d ubuntu-autoinstall-jammytest.iso  
 [2022-12-16 09:46:19] 👶 Starting up...
 [2022-12-16 09:46:19] 🔎 Checking for current release...
 [2022-12-16 09:46:21] 💿 Current release is 22.04.1
@@ -232,8 +336,12 @@ root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoin
 
 ### Define your own local installer upload build ISO.
 If you need to build a local application into the ISO image, you need to specify the -s parameter to provide the directory.
+
 ###  Example
 The following is an example of local application
+
+
+
 ```shell
 root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n  jammy  -p -f file-name.txt -o -t rc.local  -x  -s /root/tmp/  -d ubuntu-autoinstall-jammytest.iso             
 [2022-12-16 10:43:27] 👶 Starting up...
