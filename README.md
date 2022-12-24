@@ -183,6 +183,7 @@ sed -i '/^#thread_cache_size/c\thread_cache_size = 16' /etc/mysql/mariadb.conf.d
 ```
 Note: that the parameters are fixed and are not allowed to be modified
 ```yaml
+  late-commands:
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
@@ -197,12 +198,14 @@ Here I am using the database template file is template.cnf， Not in the specifi
 
 Note: Except for the source and destination configuration files of the template file, which can be changed, nothing else is allowed
 ```yaml
+  late-commands:    
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
     - chmod +x /target/mnt/script/config.sh
     - curtin in-target --target=/target -- /mnt/script/config.sh
-    - curtin in-target --target=/target -- cp /mnt/template.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+    - curtin in-target --target=/target -- cp /mnt/template.conf /etc/mysql/mariadb.conf.d/50-server.cnf
+   #- curtin in-target --target=/target -- cp /mnt/template.conf /etc/nginx/config.d/app.conf
 ```
 
 
@@ -270,7 +273,7 @@ while true; do
       GRANT ALL ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
       GRANT ALL ON *.* TO 'root'@'localhost' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
       FLUSH PRIVILEGES;
-      commit;
+      COMMIT;
 EOF
       fn_log "Update mysql password"
       break

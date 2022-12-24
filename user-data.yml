@@ -126,7 +126,7 @@ autoinstall:
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
-    - curtin in-target --target=/target -- cp /mnt/template.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+    - curtin in-target --target=/target -- cp /mnt/template.conf /etc/mysql/mariadb.conf.d/50-server.cnf
     - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
     - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
     - cp -p /cdrom/rc.local /target/etc/rc.local
