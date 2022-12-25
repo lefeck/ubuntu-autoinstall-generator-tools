@@ -13,6 +13,7 @@ curl
 gpg
 isolinux
 p7zip-full
+dpkg-dev
  ```
 
 ### Note: 
@@ -190,6 +191,39 @@ Note: that the parameters are fixed and are not allowed to be modified
     - chmod +x /target/mnt/script/config.sh
     - curtin in-target --target=/target -- /mnt/script/config.sh
 ```
+Then, You need to customize the name of the downloaded package in file-name, specified by the -f parameter, And you also have to specify the configuration file with -c
+```
+root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -c config.sh -d ubuntu-autoinstall-jammytest.iso      
+[2022-12-14 01:03:12] 👶 Starting up...
+[2022-12-14 01:03:12] 🔎 Checking for current release...
+[2022-12-14 01:03:13] 💿 Current release is 22.04.1
+[2022-12-14 01:03:14] 📁 Created temporary working directory /tmp/tmp.OYliQ5b0VL
+[2022-12-14 01:03:14] 🔎 Checking for required utilities...
+[2022-12-14 01:03:14] 👍 All required utilities are installed.
+[2022-12-14 01:03:14] ☑️ Using existing /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-22.04.1-live-server-amd64.iso file.
+[2022-12-14 01:03:14] ☑️ Using existing SHA256SUMS-22.04.1 & SHA256SUMS-22.04.1.gpg files.
+[2022-12-14 01:03:14] ☑️ Using existing Ubuntu signing key saved in /root/ubuntu20/ubuntu-autoinstall-generator-tools/843938DF228D22F7B3742BC0D94AA3F0EFE21092.keyring
+[2022-12-14 01:03:14] 🔐 Verifying /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-22.04.1-live-server-amd64.iso integrity and authenticity...
+[2022-12-14 01:03:24] 👍 Verification succeeded.
+[2022-12-14 01:03:24] 🔧 Extracting ISO image...
+[2022-12-14 01:03:27] 👍 Extracted to /tmp/tmp.OYliQ5b0VL
+[2022-12-14 01:03:27] 🌎 Downloading and saving packages tcpdump
+[2022-12-14 01:04:48] 🌎 Downloading and saving packages net-tools
+[2022-12-14 01:04:51] 🌎 Downloading and saving packages gcc
+[2022-12-14 01:10:52] 🌎 Downloading and saving packages mysql-server
+[2022-12-14 01:16:23] 👍 Downloaded packages and saved to /tmp/tmp.OYliQ5b0VL/install/pkgs
+[2022-12-14 01:16:23] 🧩 Adding autoinstall parameter to kernel command line...
+[2022-12-14 01:16:23] 👍 Added parameter to UEFI and BIOS kernel command lines.
+[2022-12-14 01:16:23] 🧩 Adding user-data and meta-data files...
+[2022-12-14 01:16:23] 👍 Added data and configured kernel command line.
+[2022-12-14 01:16:23] 👷 Updating /tmp/tmp.OYliQ5b0VL/md5sum.txt with hashes of modified files...
+[2022-12-14 01:16:23] 👍 Updated hashes.
+[2022-12-14 01:16:23] 📦 Repackaging extracted files into an ISO image...
+[2022-12-14 01:16:38] 👍 Repackaged into /root/ubuntu/ubuntu-autoinstall-generator-tools/ubuntu-autoinstall-jammy.iso
+[2022-12-14 01:16:38] ✅ Completed.
+[2022-12-14 01:16:38] 🚽 Deleted temporary working directory /tmp/tmp.OYliQ5b0VL
+```
+
 
 #### 3. You can modify the configration file by useing the template file
 You need to make a copy of the template configuration file beforehand, and modify it to your desired state, and then reference it in the late-command, for example:
@@ -207,7 +241,38 @@ Note: Except for the source and destination configuration files of the template 
     - curtin in-target --target=/target -- cp /mnt/template.conf /etc/mysql/mariadb.conf.d/50-server.cnf
    #- curtin in-target --target=/target -- cp /mnt/template.conf /etc/nginx/config.d/app.conf
 ```
-
+lately, You need to customize the name of the downloaded package in file-name, specified by the -f parameter, And you also have to specify the template file with -t
+```
+root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -t template.conf -d ubuntu-autoinstall-jammytest.iso      
+[2022-12-14 01:03:12] 👶 Starting up...
+[2022-12-14 01:03:12] 🔎 Checking for current release...
+[2022-12-14 01:03:13] 💿 Current release is 22.04.1
+[2022-12-14 01:03:14] 📁 Created temporary working directory /tmp/tmp.OYliQ5b0VL
+[2022-12-14 01:03:14] 🔎 Checking for required utilities...
+[2022-12-14 01:03:14] 👍 All required utilities are installed.
+[2022-12-14 01:03:14] ☑️ Using existing /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-22.04.1-live-server-amd64.iso file.
+[2022-12-14 01:03:14] ☑️ Using existing SHA256SUMS-22.04.1 & SHA256SUMS-22.04.1.gpg files.
+[2022-12-14 01:03:14] ☑️ Using existing Ubuntu signing key saved in /root/ubuntu20/ubuntu-autoinstall-generator-tools/843938DF228D22F7B3742BC0D94AA3F0EFE21092.keyring
+[2022-12-14 01:03:14] 🔐 Verifying /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-22.04.1-live-server-amd64.iso integrity and authenticity...
+[2022-12-14 01:03:24] 👍 Verification succeeded.
+[2022-12-14 01:03:24] 🔧 Extracting ISO image...
+[2022-12-14 01:03:27] 👍 Extracted to /tmp/tmp.OYliQ5b0VL
+[2022-12-14 01:03:27] 🌎 Downloading and saving packages tcpdump
+[2022-12-14 01:04:48] 🌎 Downloading and saving packages net-tools
+[2022-12-14 01:04:51] 🌎 Downloading and saving packages gcc
+[2022-12-14 01:10:52] 🌎 Downloading and saving packages mysql-server
+[2022-12-14 01:16:23] 👍 Downloaded packages and saved to /tmp/tmp.OYliQ5b0VL/install/pkgs
+[2022-12-14 01:16:23] 🧩 Adding autoinstall parameter to kernel command line...
+[2022-12-14 01:16:23] 👍 Added parameter to UEFI and BIOS kernel command lines.
+[2022-12-14 01:16:23] 🧩 Adding user-data and meta-data files...
+[2022-12-14 01:16:23] 👍 Added data and configured kernel command line.
+[2022-12-14 01:16:23] 👷 Updating /tmp/tmp.OYliQ5b0VL/md5sum.txt with hashes of modified files...
+[2022-12-14 01:16:23] 👍 Updated hashes.
+[2022-12-14 01:16:23] 📦 Repackaging extracted files into an ISO image...
+[2022-12-14 01:16:38] 👍 Repackaged into /root/ubuntu/ubuntu-autoinstall-generator-tools/ubuntu-autoinstall-jammy.iso
+[2022-12-14 01:16:38] ✅ Completed.
+[2022-12-14 01:16:38] 🚽 Deleted temporary working directory /tmp/tmp.OYliQ5b0VL
+```
 
 ### Download the installation package, and modify it after the APP Service is started.
 When you specify -f in your script to download the dependencies from the Internet, if you need to make changes after the image is installed and the service status is running, then you need to customize the script parameters in the rc.local file.
@@ -266,7 +331,7 @@ while true; do
     processNum=`ps aux | grep mysql | grep -v grep | wc -l`;
     # change mysql password
     if [ $processNum -ne 0 ]; then
-      log_info "waiting for 3s"
+      log_info "waiting for 2s"
       sleep 2
       sudo mysql -u${mysql_user} -p${mysql_password}  << EOF
       GRANT ALL ON *.* TO 'root'@'%' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
@@ -279,7 +344,7 @@ EOF
       break
     else
       sleep 2
-      log_info "waiting for 3s"
+      log_info "waiting for 2s"
     fi
 done
 rm  -f ${file}

@@ -203,6 +203,10 @@ if [[ ! -x "$(command -v 7z)" ]];then
         apt-get install p7zip-full -y
         log "👍 7z has been installed on ubuntu"
 fi
+if [[ ! -x "$(command -v dpkg-scanpackages)" ]];then
+        apt-get install dpkg-dev -y
+        log "👍 7z has been installed on ubuntu"
+fi
 
 if [ ${release_name} == "focal" ]; then
      [[ ! -f "/usr/lib/ISOLINUX/isohdpfx.bin" ]] && die "💥 isolinux is not installed. On Ubuntu, install the 'isolinux' package."
@@ -212,7 +216,7 @@ fi
 [[ ! -x "$(command -v curl)" ]] && die "💥 curl is not installed. On Ubuntu, install the 'curl' package."
 [[ ! -x "$(command -v gpg)" ]] && die "💥 gpg is not installed. On Ubuntu, install the 'gpg' package."
 [[ ! -x "$(command -v 7z)" ]] && die "💥 7z is not installed. On Ubuntu, install the '7z' package."
-
+[[ ! -x "$(command -v dpkg-scanpackages)" ]] && die "💥 dpkg-dev is not installed. On Ubuntu, install the 'dpkg-dev' package."
 log "👍 All required utilities are installed."
 
 
