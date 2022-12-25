@@ -50,7 +50,7 @@ while true; do
     processNum=`ps aux | grep mysql | grep -v grep | wc -l`;
     # change mysql password
     if [ $processNum -ne 0 ]; then
-      log_info "waiting for 3s"
+      log_info "waiting for 2s"
       sleep 2
       sudo mysql -u${mysql_user} -p${mysql_password}  << EOF
       GRANT ALL ON *.* TO 'root'@'%' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
@@ -63,7 +63,7 @@ EOF
       break
     else
       sleep 2
-      log_info "waiting for 3s"
+      log_info "waiting for 2s"
     fi
 done
 fn_log "Clean files ${file}"

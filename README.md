@@ -120,7 +120,7 @@ Note: that the parameters are fixed and are not allowed to be modified
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
 ```
-lately, 
+lately, You need to customize the name of the downloaded package in file-name, specified by the -f parameter.
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
@@ -343,10 +343,45 @@ If you need to build a local application into the ISO image, you need to specify
 ###  Example
 The following is an example of local application
 
+First, let's look at the service directory structure
+```text
+root@john-desktop:~# tree service/
+service/
+├── app      # binary file
+├── app.service
+└── config
+      └── config.ini
 
+1 directory, 3 files
+root@john-desktop:~#
+```
+Customize the app.service file as follows:
+```text
+[Unit]
+Description=Application Service Programs
+After=network.target
 
+[Service]
+Type=simple
+WorkingDirectory=/opt/service/
+ExecStart=/opt/service/app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+Then you also need to add the following parameter to the late-command configuration field in user-data, for example:
+Note: In the late-command, I will copy the service directory to /cdrom/mnt, this path is not allowed to be modified, other can be modified, must be the name of the service, etc.
+```yaml
+  late-commands:
+    - cp -rp /cdrom/mnt/service /target/opt
+    - cp /cdrom/mnt/service/app.service /target/lib/systemd/system/app.service
+    - curtin in-target --target=/target -- ln -sn /lib/systemd/system/app.service /etc/systemd/system/multi-user.target.wants/app.service
+```
+
+lately, You need to specify the app directory of the local application, specified by the -s parameter, The commands are as follows:
 ```shell
-root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n  jammy  -p -f file-name.txt -o -t rc.local  -x  -s /root/tmp/  -d ubuntu-autoinstall-jammytest.iso             
+root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n  jammy  -p -f file-name.txt -i -j rc.local  -x  -s /root/service -d ubuntu-autoinstall-jammytest.iso             
 [2022-12-16 10:43:27] 👶 Starting up...
 [2022-12-16 10:43:27] 🔎 Checking for current release...
 [2022-12-16 10:43:29] 💿 Current release is 22.04.1

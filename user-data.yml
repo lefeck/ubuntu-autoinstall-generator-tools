@@ -132,7 +132,6 @@ autoinstall:
     - cp -p /cdrom/rc.local /target/etc/rc.local
     - chmod +x /target/etc/rc.local
     - systemctl daemon-reload
-    - cp -rp /cdrom/mnt/wsa /target/opt
-    - cp /cdrom/mnt/wsa/wsa.service /target/lib/systemd/system
-    - curtin in-target --target=/target -- ln -sn /lib/systemd/system/wsa.service /etc/systemd/system/wsa.service
-    - systemctl daemon-reload
+    - cp -rp /cdrom/mnt/app /target/opt
+    - cp /cdrom/mnt/app/app.service /target/lib/systemd/system/app.service
+    - curtin in-target --target=/target -- ln -sn /lib/systemd/system/app.service /etc/systemd/system/multi-user.target.wants/app.service

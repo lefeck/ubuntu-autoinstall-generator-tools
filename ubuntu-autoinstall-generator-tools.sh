@@ -337,7 +337,7 @@ if [ ${packages_name} -eq 1 ]; then
 
         log "🧩 Adding template-config files..."
         if [ -n "$temaplate_config_file" ]; then
-            cp -rp  "$temaplate_config_file" "$tmpdir/mnt"
+            cp -p  "$temaplate_config_file" "$tmpdir/mnt"
         else
             echo "No $meta_data_file template profile available."
         fi
