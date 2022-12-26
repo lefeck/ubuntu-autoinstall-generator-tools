@@ -114,6 +114,7 @@ keepalived
 samba samba-common
 ```
 Then you also need to add the following parameter to the late-command configuration field in user-data, for example:
+
 Note: that the parameters are fixed and are not allowed to be modified
 ```yaml
   late-commands:
@@ -121,7 +122,7 @@ Note: that the parameters are fixed and are not allowed to be modified
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
 ```
-lately, You need to customize the name of the downloaded package in file-name, specified by the -f parameter.
+Finally, you need to specify on the command line the file-name.txt that you want to download the installer from, with the -p -f parameter.
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
@@ -191,7 +192,7 @@ Note: that the parameters are fixed and are not allowed to be modified
     - chmod +x /target/mnt/script/config.sh
     - curtin in-target --target=/target -- /mnt/script/config.sh
 ```
-Then, You need to customize the name of the downloaded package in file-name, specified by the -f parameter, And you also have to specify the configuration file with -c
+Finally, you need to specify on the command line the file-name.txt that you want to download the installer from, with the -p -f parameter, And you also have to specify the configuration file with -c
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -c config.sh -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
@@ -228,7 +229,7 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 #### 3. You can modify the configration file by useing the template file
 You need to make a copy of the template configuration file beforehand, and modify it to your desired state, and then reference it in the late-command, for example:
 
-Here I am using the database template file is template.cnf， Not in the specific display content
+Here I am using the database template file is template.conf， Not in the specific display content
 
 Note: Except for the source and destination configuration files of the template file, which can be changed, nothing else is allowed
 ```yaml
@@ -236,12 +237,10 @@ Note: Except for the source and destination configuration files of the template 
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
-    - chmod +x /target/mnt/script/config.sh
-    - curtin in-target --target=/target -- /mnt/script/config.sh
     - curtin in-target --target=/target -- cp /mnt/template.conf /etc/mysql/mariadb.conf.d/50-server.cnf
    #- curtin in-target --target=/target -- cp /mnt/template.conf /etc/nginx/config.d/app.conf
 ```
-lately, You need to customize the name of the downloaded package in file-name, specified by the -f parameter, And you also have to specify the template file with -t
+Finally, you need to specify on the command line the file-name.txt that you want to download the installer from, with the -p -f parameter, And you also have to specify the template file with -t
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -t template.conf -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
@@ -352,6 +351,7 @@ fn_log "Clean files ${file}"
 exit 0
 ```
 Then you also need to add the following parameter to the late-command configuration field in user-data, for example:
+
 Note: that the parameters are fixed and are not allowed to be modified.
 ```yaml
   late-commands:
@@ -366,7 +366,7 @@ Note: that the parameters are fixed and are not allowed to be modified.
     - systemctl daemon-reload
 ```
 
-lately, you needed to specify -j parameter of the task file, that the file name can be customized,
+Finally, you need to specfiy the file name of the one-time task rc.lcoal on the command line, via the -i -j parameter
 ```
 root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -i -j rc.local  -d ubuntu-autoinstall-jammytest.iso  
 [2022-12-16 09:46:19] 👶 Starting up...
@@ -436,6 +436,7 @@ Restart=always
 WantedBy=multi-user.target
 ```
 Then you also need to add the following parameter to the late-command configuration field in user-data, for example:
+
 Note: In the late-command, I will copy the service directory to /cdrom/mnt, this path is not allowed to be modified, other can be modified, must be the name of the service, etc.
 ```yaml
   late-commands:
@@ -444,7 +445,7 @@ Note: In the late-command, I will copy the service directory to /cdrom/mnt, this
     - curtin in-target --target=/target -- ln -sn /lib/systemd/system/app.service /etc/systemd/system/multi-user.target.wants/app.service
 ```
 
-lately, You need to specify the app directory of the local application, specified by the -s parameter, The commands are as follows:
+Finally, You need to specify the app directory of the local application, specified by the -x -s parameter, The commands are as follows:
 ```shell
 root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n  jammy  -p -f file-name.txt -i -j rc.local  -x  -s /root/service -d ubuntu-autoinstall-jammytest.iso             
 [2022-12-16 10:43:27] 👶 Starting up...
