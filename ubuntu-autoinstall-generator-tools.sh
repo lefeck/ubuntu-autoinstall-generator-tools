@@ -308,8 +308,7 @@ if [ ${packages_name} -eq 1 ]; then
          mv ${script_dir}/*.deb ${pkgs_destination_dir}
          log "👍 Downloaded and saved the ${line} packages to ${pkgs_destination_dir}/${line}"
        done
-        #创建本地软件源的index文件:
-        cd ${pkgs_destination_dir}
+        # create the index file of the local software sources
         dpkg-scanpackages ./  &>/dev/null  | gzip -9c > Packages.gz
         apt-ftparchive packages ./ > Packages
         apt-ftparchive release ./ > Release
