@@ -142,7 +142,7 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 [2022-12-14 01:04:48] 🌎 Downloading and saving packages net-tools
 [2022-12-14 01:04:51] 🌎 Downloading and saving packages gcc
 [2022-12-14 01:10:52] 🌎 Downloading and saving packages mysql-server
-[2022-12-14 01:16:23] 👍 Downloaded packages and saved to /tmp/tmp.OYliQ5b0VL/install/pkgs
+[2022-12-14 01:16:23] 👍 Downloaded packages and saved to /tmp/tmp.OYliQ5b0VL/mnt/pkgs
 [2022-12-14 01:16:23] 🧩 Adding autoinstall parameter to kernel command line...
 [2022-12-14 01:16:23] 👍 Added parameter to UEFI and BIOS kernel command lines.
 [2022-12-14 01:16:23] 🧩 Adding user-data and meta-data files...
@@ -212,7 +212,7 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 [2022-12-14 01:04:48] 🌎 Downloading and saving packages net-tools
 [2022-12-14 01:04:51] 🌎 Downloading and saving packages gcc
 [2022-12-14 01:10:52] 🌎 Downloading and saving packages mysql-server
-[2022-12-14 01:16:23] 👍 Downloaded packages and saved to /tmp/tmp.OYliQ5b0VL/install/pkgs
+[2022-12-14 01:16:23] 👍 Downloaded packages and saved to /tmp/tmp.OYliQ5b0VL/mnt/pkgs
 [2022-12-14 01:16:23] 🧩 Adding autoinstall parameter to kernel command line...
 [2022-12-14 01:16:23] 👍 Added parameter to UEFI and BIOS kernel command lines.
 [2022-12-14 01:16:23] 🧩 Adding user-data and meta-data files...
@@ -260,7 +260,7 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 [2022-12-14 01:04:48] 🌎 Downloading and saving packages net-tools
 [2022-12-14 01:04:51] 🌎 Downloading and saving packages gcc
 [2022-12-14 01:10:52] 🌎 Downloading and saving packages mysql-server
-[2022-12-14 01:16:23] 👍 Downloaded packages and saved to /tmp/tmp.OYliQ5b0VL/install/pkgs
+[2022-12-14 01:16:23] 👍 Downloaded packages and saved to /tmp/tmp.OYliQ5b0VL/mnt/pkgs
 [2022-12-14 01:16:23] 🧩 Adding autoinstall parameter to kernel command line...
 [2022-12-14 01:16:23] 👍 Added parameter to UEFI and BIOS kernel command lines.
 [2022-12-14 01:16:23] 🧩 Adding user-data and meta-data files...
@@ -292,7 +292,7 @@ file="/etc/rc.local"
 DATE=`date "+%Y-%m-%d %H:%M:%S"`
 USER=`whoami`
 HOST_NAME=`hostname`
-LOG_FILE="/extra/log/rc-local.log"
+LOG_FILE="/var/log/rc-local.log"
 
 # Execution successful log printing path
 function log_info () {
@@ -388,8 +388,8 @@ root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoin
 [2022-12-16 09:50:13] 🌎 Downloading and saving packages mariadb-server
 [2022-12-16 09:51:19] 🌎 Downloading and saving packages mariadb-client
 [2022-12-16 09:51:21] 🚽 Deleted temporary file /tmp/tmp.tRYNYKdmxv/file-name.txt.
-[2022-12-16 09:51:21] 👍 Downloaded packages and saved to /tmp/tmp.tRYNYKdmxv/extra/pkgs
-[2022-12-16 09:51:21] 📁 Moving rc.local file to temporary working directory /tmp/tmp.tRYNYKdmxv/extra/script.
+[2022-12-16 09:51:21] 👍 Downloaded packages and saved to /tmp/tmp.tRYNYKdmxv/mnt/pkgs
+[2022-12-16 09:51:21] 📁 Moving rc.local file to temporary working directory /tmp/tmp.tRYNYKdmxv/mnt/script.
 [2022-12-16 09:51:21] 🧩 Adding autoinstall parameter to kernel command line...
 [2022-12-16 09:51:21] 👍 Added parameter to UEFI and BIOS kernel command lines.
 [2022-12-16 09:51:21] 🧩 Adding user-data and meta-data files...
@@ -468,8 +468,8 @@ root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoin
 [2022-12-16 10:45:05] 🌎 Downloading and saving packages mariadb-client
 [2022-12-16 10:45:07] 🚽 Deleted temporary file /tmp/tmp.X12RSWTKVK/file-name.txt.
 [2022-12-16 10:45:07] 👍 Downloaded packages and saved to /tmp/tmp.X12RSWTKVK/extra/pkgs
-[2022-12-16 10:45:07] 📁 Moving rc.local file to temporary working directory /tmp/tmp.X12RSWTKVK/extra/script.
-[2022-12-16 10:45:07] 📁 Moving /root/tmp directory to temporary working directory /tmp/tmp.X12RSWTKVK/extra/ 
+[2022-12-16 10:45:07] 📁 Moving rc.local file to temporary working directory /tmp/tmp.X12RSWTKVK/mnt/script.
+[2022-12-16 10:45:07] 📁 Moving /root/tmp directory to temporary working directory /tmp/tmp.X12RSWTKVK/mnt/ 
 [2022-12-16 10:45:07] 🧩 Adding autoinstall parameter to kernel command line...
 [2022-12-16 10:45:07] 👍 Added parameter to UEFI and BIOS kernel command lines.
 [2022-12-16 10:45:07] 🧩 Adding user-data and meta-data files...
