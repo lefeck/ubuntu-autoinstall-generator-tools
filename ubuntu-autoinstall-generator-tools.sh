@@ -9,7 +9,7 @@ function cleanup() {
         fi
 }
 
-trap cleanup SIGINT SIGTERM ERR EXIT
+#trap cleanup SIGINT SIGTERM ERR EXIT
 
 bootdir="/tmp/BOOT"
 # Gets the current location of the script
@@ -309,9 +309,11 @@ if [ ${packages_name} -eq 1 ]; then
          log "👍 Downloaded and saved the ${line} packages to ${pkgs_destination_dir}/${line}"
        done
         # create the index file of the local software sources
+        cd ${pkgs_destination_dir}
         dpkg-scanpackages ./  &>/dev/null  | gzip -9c > Packages.gz
         apt-ftparchive packages ./ > Packages
         apt-ftparchive release ./ > Release
+        cd  ${script_dir}
 
         echo '#!/bin/bash' > ${script_file}
         echo "# The default installation package will be downloaded to /cdrom/mnt/packages/ directory" >> ${script_file}
@@ -328,7 +330,6 @@ if [ ${packages_name} -eq 1 ]; then
         else
              die "👿 Verification of script file failed."
         fi
-        cd  ${script_dir}
 
         log "🧩 Adding config-data files..."
         if [ -n "$config_data_file" ]; then

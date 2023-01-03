@@ -14,6 +14,3 @@ sed -i '/^#min_examined_row_limit/c\min_examined_row_limit = 1000' /etc/mysql/ma
 sed -i '/^#table_cache/c\table_cache = 128' /etc/mysql/mariadb.conf.d/50-server.cnf
 sed -i '/^#skip-name-resolvlse/c\skip-name-resolve' /etc/mysql/mariadb.conf.d/50-server.cnf
 sed -i '/^#thread_cache_size/c\thread_cache_size = 32' /etc/mysql/mariadb.conf.d/50-server.cnf
-sed -i '/^#PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config
-Nic_Name=`cat /proc/net/dev | awk '{i++; if(i>2){print $1}}' | sed 's/^[\t]*//g' | sed 's/[:]*$//g' | grep -v "lo"  | head -n 1`
-sed -i "s/    ens136/    ${Nic_Name}/g" /etc/netplan/00-installer-config.yaml

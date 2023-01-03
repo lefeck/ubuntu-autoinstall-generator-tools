@@ -56,6 +56,7 @@ while true; do
       GRANT ALL ON *.* TO 'root'@'%' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
       GRANT ALL ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
       GRANT ALL ON *.* TO 'root'@'localhost' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
+      source /opt/wsa/opm/sql/wsa_clean.sql;
       FLUSH PRIVILEGES;
       commit;
 EOF
