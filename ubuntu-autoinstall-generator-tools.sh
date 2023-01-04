@@ -389,7 +389,7 @@ fi
 
 log "👍 Added parameter to UEFI and BIOS kernel command lines."
 
-# create user-data.yml and meta-data, then change grub.cfg file
+# create user-data-esxi.yml and meta-data, then change grub.cfg file
 if [ ${all_in_one} -eq 1 ]; then
         log "🧩 Adding user-data and meta-data files..."
         #mkdir "$tmpdir/nocloud"
