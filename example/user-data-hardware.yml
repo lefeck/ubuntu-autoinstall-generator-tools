@@ -29,7 +29,9 @@ autoinstall:
   locale: en_US.UTF-8
   network:
     ethernets:
-      enp1s0:
+      # Note: This NIC name ens136 is my custom name, during installation, if you specify the config-network.sh script, it will
+      # be automatically changed to the first NIC name of the machine itself
+      ens136:
         addresses:
           - 192.168.6.100/24
         gateway4: 192.168.6.1
@@ -37,16 +39,6 @@ autoinstall:
           addresses:
             - 114.114.114.114
           search: []
-      enp2s0:
-        dhcp4: true
-      enp3s0:
-        dhcp4: true
-      enp4s0:
-        dhcp4: true
-      enp5s0:
-        dhcp4: true
-      enp6s0:
-        dhcp4: true
     version: 2
   ssh:
     allow-pw: true

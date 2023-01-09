@@ -30,6 +30,8 @@ autoinstall:
   locale: en_US.UTF-8
   network:
     ethernets:
+      # Note: This NIC name ens136 is my custom name, during installation, if you specify the config-network.sh script, it will
+      # be automatically changed to the first NIC name of the machine itself
       ens136:
         addresses:
         - 192.168.10.104/24
