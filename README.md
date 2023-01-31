@@ -238,7 +238,7 @@ Note: Except for the source and destination configuration files of the template 
    #- curtin in-target --target=/target -- cp /mnt/template.conf /etc/nginx/config.d/app.conf
 ```
 Finally, you need to specify on the command line the package-name.txt that you want to download the installer from, with the -p parameter, And you also have to specify the template file with -t
-```
+```sh
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p package-name.txt -t template.conf -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
 [2022-12-14 01:03:12] 🔎 Checking for current release...
@@ -361,10 +361,10 @@ Note: that the parameters are fixed and are not allowed to be modified.
     - cp -p /cdrom/rc.local /target/etc/rc.local
     - chmod +x /target/etc/rc.local
     - systemctl daemon-reload
-``
+```
 
 Finally, you need to specfiy the file name of the one-time task rc.lcoal on the command line, via the -j parameter
-```
+```shell
 root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p package-name.txt -j rc.local -d ubuntu-autoinstall-jammytest.iso  
 [2022-12-16 09:46:19] 👶 Starting up...
 [2022-12-16 09:46:19] 🔎 Checking for current release...
