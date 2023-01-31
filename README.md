@@ -29,7 +29,7 @@ We all know that each release version number of ubuntu will be mapped to a name,
 ## Basic Usage
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -h
-Usage: ubuntu-autoinstall-generator-tools.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p ] [-f file-name] [-c config-data] [-t temaplate-config] [-k] [-o] [-r] [-d destination-iso-file] [-x] [-s service-dir-name] [-i] [-j job-name]
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p package-name] [-c config-data-file] [-t temaplate-config-file] [-s service-dir-name] [-j job-name] [-k] [-o] [-r] [-d destination-iso-file]
 
 💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
 
@@ -47,27 +47,24 @@ Available options:
 -n, --release-name      Specifies the code name to download the ISO image distribution, You must select any string
                         from the list as an argument. eg: focal, jammy, kinetic.
 -m, --meta-data         Path to meta-data file. Will be an empty file if not specified and using -a
--p, --packages-name     Bake file-name into the generated ISO. if the package-name is empty，no installation package
-                        will be downloaded.
--f, --file-name         Path to file-name file. Required if using -p
--c, --config-data       Path to config-data file. Required if using -p
--t  --temaplate-config  Path to temaplate-config file. Required if using -p
--k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-2022-12-24 and
-                        SHA256SUMS-2022-12-24.gpg in /root/ubuntu20/ubuntu-autoinstall-generator-tools will be used to verify the authenticity and integrity
+-p, --package-name      Bake he package-name downloaded installation into the generated ISO. if the package-name is empty，
+                        no installation package will be downloaded. Path to package-name file. Required if using -a
+-c, --config-data       Path to config-data file. Required if using -a
+-t  --temaplate-config  Path to temaplate-config file. Required if using -a
+-k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-$today and
+                        SHA256SUMS-$today.gpg in ${script_dir} will be used to verify the authenticity and integrity
                         of the source ISO file. If they are not present the latest daily SHA256SUMS will be
-                        downloaded and saved in /root/ubuntu20/ubuntu-autoinstall-generator-tools. The Ubuntu signing key will be downloaded and
-                        saved in a new keyring in /root/ubuntu20/ubuntu-autoinstall-generator-tools
+                        downloaded and saved in ${script_dir}. The Ubuntu signing key will be downloaded and
+                        saved in a new keyring in ${script_dir}
 -o, --no-md5            Disable MD5 checksum on boot
 -r, --use-release-iso   Use the current release ISO instead of the daily ISO. The file will be used if it already
                         exists.
--d, --destination       Destination ISO file. By default /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-autoinstall-2022-12-24.iso will be
+-d, --destination       Destination ISO file. By default ${script_dir}/ubuntu-autoinstall-$today.iso will be
                         created, overwriting any existing file.
--x  --service-dir       Bake service-dir-name into the generated ISO. if service-dir is not specified, no local application
-                        will be uploaded to complete the ISO build.
--s  --service-dir-name  Path to service-dir-name file. Required if using -x
--i  --all-in-one-job   Bake job-name into the generated ISO. if job-name is not specified, there will be
-                        no action to change after the service starts.
--j  --job-name         Path to job-name file. Required if using -i
+-s  --service-dir-name  Bake service-dir-name into the generated ISO. if service-dir-name is not specified, no local application
+                        will be uploaded to complete the ISO build. Path to service-dir-name directory. Required if using -a
+-j  --job-name         Bake job-name into the generated ISO. if job-name is not specified, there will be
+                       no action to change after the service starts. Path to job-name file. Required if using -a
 ```
 ### Example
 ```
@@ -102,9 +99,9 @@ Now you can boot your target machine using ubuntu-autoinstall-jammy.iso and it w
 
 ### Only download the installation package
 
-When you just download the installation package from the Internet, you do not have to modify the configuration file of the installation package, just specify -f
+When you just download the installation package from the Internet, you do not have to modify the configuration file of the installation package, just specify -p
 ###  Example
-first，you shoule be configure the file-name.txt of the installation packages names, for example:
+first，you shoule be configure the package-name.txt of the installation packages names, for example:
 ```text
 # Define the name of the package to be downloaded from the Internet
  net-tools
@@ -122,9 +119,9 @@ Note: that the parameters are fixed and are not allowed to be modified
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
 ```
-Finally, you need to specify on the command line the file-name.txt that you want to download the installer from, with the -p -f parameter.
+Finally, you need to specify on the command line the package-name.txt that you want to download the installer from, with the -p parameter.
 ```
-root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -d ubuntu-autoinstall-jammytest.iso      
+root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p package-name.txt -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
 [2022-12-14 01:03:12] 🔎 Checking for current release...
 [2022-12-14 01:03:13] 💿 Current release is 22.04.1
@@ -156,7 +153,7 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 ```
 
 ### Download the installation package, and modify it before the APP Service is started.
-When you specify -f in your script to download the dependencies from the Internet, If you want to change the default values of the configuration file through a template or command before starting the service.
+When you specify -p in your script to download the dependencies from the Internet, If you want to change the default values of the configuration file through a template or command before starting the service.
 
 ###  Example
 The following is an example of a mysql config file change operation, Three flexible methods are provided here, choose any one of them.
@@ -192,9 +189,9 @@ Note: that the parameters are fixed and are not allowed to be modified
     - chmod +x /target/mnt/script/config.sh
     - curtin in-target --target=/target -- /mnt/script/config.sh
 ```
-Finally, you need to specify on the command line the file-name.txt that you want to download the installer from, with the -p -f parameter, And you also have to specify the configuration file with -c
+Finally, you need to specify on the command line the package-name.txt that you want to download the installer from, with the -p -f parameter, And you also have to specify the configuration file with -c
 ```
-root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -c config.sh -d ubuntu-autoinstall-jammytest.iso      
+root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p package-name.txt -c config.sh -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
 [2022-12-14 01:03:12] 🔎 Checking for current release...
 [2022-12-14 01:03:13] 💿 Current release is 22.04.1
@@ -240,9 +237,9 @@ Note: Except for the source and destination configuration files of the template 
     - curtin in-target --target=/target -- cp /mnt/template.conf /etc/mysql/mariadb.conf.d/50-server.cnf
    #- curtin in-target --target=/target -- cp /mnt/template.conf /etc/nginx/config.d/app.conf
 ```
-Finally, you need to specify on the command line the file-name.txt that you want to download the installer from, with the -p -f parameter, And you also have to specify the template file with -t
+Finally, you need to specify on the command line the package-name.txt that you want to download the installer from, with the -p -f parameter, And you also have to specify the template file with -t
 ```
-root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -t template.conf -d ubuntu-autoinstall-jammytest.iso      
+root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p package-name.txt -t template.conf -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
 [2022-12-14 01:03:12] 🔎 Checking for current release...
 [2022-12-14 01:03:13] 💿 Current release is 22.04.1
@@ -274,7 +271,7 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 ```
 
 ### Download the installation package, and modify it after the APP Service is started.
-When you specify -f in your script to download the dependencies from the Internet, if you need to make changes after the image is installed and the service status is running, then you need to customize the script parameters in the rc.local file.
+When you specify -p in your script to download the dependencies from the Internet, if you need to make changes after the image is installed and the service status is running, then you need to customize the script parameters in the rc.local file.
 
 ###  Example
 The following is an example of a mysql password change operation
@@ -368,7 +365,7 @@ Note: that the parameters are fixed and are not allowed to be modified.
 
 Finally, you need to specfiy the file name of the one-time task rc.lcoal on the command line, via the -i -j parameter
 ```
-root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p -f file-name.txt -i -j rc.local  -d ubuntu-autoinstall-jammytest.iso  
+root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p package-name.txt -i -j rc.local  -d ubuntu-autoinstall-jammytest.iso  
 [2022-12-16 09:46:19] 👶 Starting up...
 [2022-12-16 09:46:19] 🔎 Checking for current release...
 [2022-12-16 09:46:21] 💿 Current release is 22.04.1
@@ -387,7 +384,7 @@ root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoin
 [2022-12-16 09:48:03] 🌎 Downloading and saving packages nginx
 [2022-12-16 09:50:13] 🌎 Downloading and saving packages mariadb-server
 [2022-12-16 09:51:19] 🌎 Downloading and saving packages mariadb-client
-[2022-12-16 09:51:21] 🚽 Deleted temporary file /tmp/tmp.tRYNYKdmxv/file-name.txt.
+[2022-12-16 09:51:21] 🚽 Deleted temporary file /tmp/tmp.tRYNYKdmxv/package-name.txt.
 [2022-12-16 09:51:21] 👍 Downloaded packages and saved to /tmp/tmp.tRYNYKdmxv/mnt/pkgs
 [2022-12-16 09:51:21] 📁 Moving rc.local file to temporary working directory /tmp/tmp.tRYNYKdmxv/mnt/script.
 [2022-12-16 09:51:21] 🧩 Adding autoinstall parameter to kernel command line...
@@ -447,7 +444,7 @@ Note: In the late-command, I will copy the service directory to /cdrom/mnt, this
 
 Finally, You need to specify the app directory of the local application, specified by the -x -s parameter, The commands are as follows:
 ```shell
-root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n  jammy  -p -f file-name.txt -i -j rc.local  -x  -s /root/service -d ubuntu-autoinstall-jammytest.iso             
+root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n  jammy  -p -f package-name.txt -i -j rc.local  -x  -s /root/service -d ubuntu-autoinstall-jammytest.iso             
 [2022-12-16 10:43:27] 👶 Starting up...
 [2022-12-16 10:43:27] 🔎 Checking for current release...
 [2022-12-16 10:43:29] 💿 Current release is 22.04.1
@@ -466,7 +463,7 @@ root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoin
 [2022-12-16 10:44:15] 🌎 Downloading and saving packages nginx
 [2022-12-16 10:44:48] 🌎 Downloading and saving packages mariadb-server
 [2022-12-16 10:45:05] 🌎 Downloading and saving packages mariadb-client
-[2022-12-16 10:45:07] 🚽 Deleted temporary file /tmp/tmp.X12RSWTKVK/file-name.txt.
+[2022-12-16 10:45:07] 🚽 Deleted temporary file /tmp/tmp.X12RSWTKVK/package-name.txt.
 [2022-12-16 10:45:07] 👍 Downloaded packages and saved to /tmp/tmp.X12RSWTKVK/extra/pkgs
 [2022-12-16 10:45:07] 📁 Moving rc.local file to temporary working directory /tmp/tmp.X12RSWTKVK/mnt/script.
 [2022-12-16 10:45:07] 📁 Moving /root/tmp directory to temporary working directory /tmp/tmp.X12RSWTKVK/mnt/ 

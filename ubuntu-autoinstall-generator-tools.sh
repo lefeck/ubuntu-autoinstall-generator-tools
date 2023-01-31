@@ -9,7 +9,7 @@ function cleanup() {
         fi
 }
 
-#trap cleanup SIGINT SIGTERM ERR EXIT
+trap cleanup SIGINT SIGTERM ERR EXIT
 
 bootdir="/tmp/BOOT"
 # Gets the current location of the script
@@ -32,7 +32,7 @@ function die() {
 # usage of the command line tool
 usage() {
         cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p ] [-f file-name] [-c config-data] [-t temaplate-config] [-k] [-o] [-r] [-d destination-iso-file] [-x] [-s service-dir-name] [-i] [-j job-name]
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p package-name] [-c config-data-file] [-t temaplate-config-file] [-s service-dir-name] [-j job-name] [-k] [-o] [-r] [-d destination-iso-file]
 
 💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
 
@@ -50,11 +50,10 @@ Available options:
 -n, --release-name      Specifies the code name to download the ISO image distribution, You must select any string
                         from the list as an argument. eg: focal, jammy, kinetic.
 -m, --meta-data         Path to meta-data file. Will be an empty file if not specified and using -a
--p, --packages-name     Bake file-name into the generated ISO. if the package-name is empty，no installation package
-                        will be downloaded.
--f, --file-name         Path to file-name file. Required if using -p
--c, --config-data       Path to config-data file. Required if using -p
--t  --temaplate-config  Path to temaplate-config file. Required if using -p
+-p, --package-name      Bake he package-name downloaded installation into the generated ISO. if the package-name is empty，
+                        no installation package will be downloaded. Path to package-name file. Required if using -a
+-c, --config-data       Path to config-data file. Required if using -a
+-t  --temaplate-config  Path to temaplate-config file. Required if using -a
 -k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-$today and
                         SHA256SUMS-$today.gpg in ${script_dir} will be used to verify the authenticity and integrity
                         of the source ISO file. If they are not present the latest daily SHA256SUMS will be
@@ -65,12 +64,10 @@ Available options:
                         exists.
 -d, --destination       Destination ISO file. By default ${script_dir}/ubuntu-autoinstall-$today.iso will be
                         created, overwriting any existing file.
--x  --service-dir       Bake service-dir-name into the generated ISO. if service-dir is not specified, no local application
-                        will be uploaded to complete the ISO build.
--s  --service-dir-name  Path to service-dir-name file. Required if using -x
--i  --all-in-one-job   Bake job-name into the generated ISO. if job-name is not specified, there will be
-                        no action to change after the service starts.
--j  --job-name         Path to job-name file. Required if using -i
+-s  --service-dir-name  Bake service-dir-name into the generated ISO. if service-dir-name is not specified, no local application
+                        will be uploaded to complete the ISO build. Path to service-dir-name directory. Required if using -a
+-j  --job-name         Bake job-name into the generated ISO. if job-name is not specified, there will be
+                       no action to change after the service starts. Path to job-name file. Required if using -a
 EOF
         exit
 }
@@ -88,11 +85,8 @@ function parse_params() {
         use_hwe_kernel=0
         md5_checksum=1
         use_release_iso=1
-        packages_name=0
-        file_name=''
-        service_dir=0
+        package_name=''
         service_dir_name=''
-        all_in_one_job=0
         job_name=''
         config_data_file=''
         temaplate_config_file=''
@@ -105,9 +99,6 @@ function parse_params() {
                 -o | --no-md5) md5_checksum=0 ;;
                 -k | --no-verify) gpg_verify=0 ;;
                 -r | --use-release-iso) use_release_iso=0 ;;
-                -p | --packages-name) packages_name=1 ;;
-                -i | --all-in-one-job) all_in_one_job=1 ;;
-                -x | --service-dir) service_dir=1 ;;
                 -j | --job-name)
                         job_name="${2-}"
                         shift
@@ -120,8 +111,8 @@ function parse_params() {
                         release_name="${2-}"
                         shift
                         ;;
-                -f | --file-name)
-                        file_name="${2-}"
+                -p | --package-name)
+                        package_name="${2-}"
                         shift
                         ;;
                 -c | --config-data)
@@ -290,79 +281,6 @@ fi
 chmod -R u+w "$tmpdir"
 log "👍 Extracted to $tmpdir"
 
-if [ ${packages_name} -eq 1 ]; then
-  # Create an mnt directory in the $tmpdir directory for other files
-  mkdir -p $tmpdir/mnt/{packages,script}
-  pkgs_destination_dir="$tmpdir/mnt/packages"
-  exec_script_dir="$tmpdir/mnt/script/"
-  script_file="install-pkgs.sh"
-
-  # customer script is used to install dependency packages
-  grep -Ev '^#|^$' $file_name > $tmpdir/$file_name
-  read_file=$(cat $tmpdir/$file_name)
-       [ -d "${pkgs_destination_dir}" ] || mkdir -p "${pkgs_destination_dir}"
-       for line in $read_file; do
-         log "🌎 Downloading and saving packages ${line}"
-         apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances \
-         --no-pre-depends ${line} | grep -v i386 | grep "^\w") &>/dev/null
-         mv ${script_dir}/*.deb ${pkgs_destination_dir}
-         log "👍 Downloaded and saved the ${line} packages to ${pkgs_destination_dir}/${line}"
-       done
-        # create the index file of the local software sources
-        cd ${pkgs_destination_dir}
-        dpkg-scanpackages ./  &>/dev/null  | gzip -9c > Packages.gz
-        apt-ftparchive packages ./ > Packages
-        apt-ftparchive release ./ > Release
-        cd  ${script_dir}
-
-        echo '#!/bin/bash' > ${script_file}
-        echo "# The default installation package will be downloaded to /cdrom/mnt/packages/ directory" >> ${script_file}
-        echo "cp /etc/apt/sources.list /etc/apt/sources.list.bak" >> ${script_file}
-        echo 'echo 'deb [trusted=yes] file:///mnt/packages/   ./' > /etc/apt/sources.list' >> ${script_file}
-        echo 'apt-get update' >> ${script_file}
-        for name in $read_file; do
-          echo "apt-get install -y ${name}" >> ${script_file}
-        done
-
-        if [ "${script_file##*.}"x = "sh"x ];then
-             chmod +x "$script_file"
-             mv "$script_file"  "$exec_script_dir"
-        else
-             die "👿 Verification of script file failed."
-        fi
-
-        log "🧩 Adding config-data files..."
-        if [ -n "$config_data_file" ]; then
-            chmod +x "$config_data_file"
-            cp -rp  "$config_data_file" "$exec_script_dir"
-        else
-            echo "No $meta_data_file config profile available."
-        fi
-
-        log "🧩 Adding template-config files..."
-        if [ -n "$temaplate_config_file" ]; then
-            cp -p  "$temaplate_config_file" "$tmpdir/mnt"
-        else
-            echo "No $meta_data_file template profile available."
-        fi
-
-        rm $tmpdir/$file_name
-        log "🚽 Deleted temporary file $tmpdir/$file_name."
-fi
-
-if [ ${all_in_one_job} -eq 1  ];then
-  cp -p ${job_name}  $tmpdir
-  cp rc-local.service $tmpdir
-  log "📁 Moving ${job_name} file to temporary working directory $tmpdir/mnt/script."
-fi
-
-if [ ${service_dir} -eq 1  ];then
-  [[ ! -d ${service_dir_name} ]] && die "👿 ${service_dir_name} is not a legal directory."
-  varible=${service_dir_name}
-  cp -rp ${varible%%/}  $tmpdir/mnt/
-  log "📁 Moving ${varible%%/} directory to temporary working directory $tmpdir/mnt/ "
-fi
-
 if [ ${use_hwe_kernel} -eq 1 ]; then
         if grep -q "hwe-vmlinuz" "$tmpdir/boot/grub/grub.cfg"; then
                 log "☑️ Destination ISO will use HWE kernel."
@@ -405,6 +323,81 @@ if [ ${all_in_one} -eq 1 ]; then
                 grep 'cdrom' "$tmpdir/boot/grub/loopback.cfg" &>/dev/null || sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/  ---,g' "$tmpdir/boot/grub/loopback.cfg"
         fi
         log "👍 Added data and configured kernel command line."
+
+        # download dependency  packages from the internet
+        if [ -n "${package_name}" ]; then
+           # Create an mnt directory in the $tmpdir directory for other files
+                  mkdir -p $tmpdir/mnt/{packages,script}
+                  pkgs_destination_dir="$tmpdir/mnt/packages"
+                  exec_script_dir="$tmpdir/mnt/script/"
+                  script_file="install-pkgs.sh"
+
+                  # customer script is used to install dependency packages
+                  grep -Ev '^#|^$' $package_name > $tmpdir/$package_name
+                  read_file=$(cat $tmpdir/$package_name)
+                  [ -d "${pkgs_destination_dir}" ] || mkdir -p "${pkgs_destination_dir}"
+                  for line in $read_file; do
+                          log "🌎 Downloading and saving packages ${line}"
+                          apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks \
+                          --no-replaces --no-enhances --no-pre-depends ${line} | grep -v i386 | grep "^\w") &>/dev/null
+                          mv ${script_dir}/*.deb ${pkgs_destination_dir}
+                          log "👍 Downloaded and saved the ${line} packages to ${pkgs_destination_dir}/${line}"
+                  done
+                  # create the index file of the local software sources
+                  cd ${pkgs_destination_dir}
+                  dpkg-scanpackages ./  &>/dev/null  | gzip -9c > Packages.gz
+                  apt-ftparchive packages ./ > Packages
+                  apt-ftparchive release ./ > Release
+                  cd  ${script_dir}
+                  log "👍 Building local dependency packages"
+                  echo '#!/bin/bash' > ${script_file}
+                  echo "# The default installation package will be downloaded to /cdrom/mnt/packages/ directory" >> ${script_file}
+                  echo "cp /etc/apt/sources.list /etc/apt/sources.list.bak" >> ${script_file}
+                  echo 'echo 'deb [trusted=yes] file:///mnt/packages/   ./' > /etc/apt/sources.list' >> ${script_file}
+                  echo 'apt-get update' >> ${script_file}
+                  for name in $read_file; do
+                          echo "apt-get install -y ${name}" >> ${script_file}
+                  done
+                  log "👍 Building local dependency packages to write script automatic execution"
+                  if [ "${script_file##*.}"x = "sh"x ];then
+                          chmod +x "$script_file"
+                          mv "$script_file"  "$exec_script_dir"
+                  else
+                          die "👿 Verification of script file failed."
+                  fi
+                  log "🧩 Adding config-data files..."
+
+                  if [ -n "$config_data_file" ]; then
+                          chmod +x "$config_data_file"
+                          cp -rp  "$config_data_file" "$exec_script_dir"
+                  else
+                          echo "No $meta_data_file config profile available."
+                  fi
+                  log "🧩 Adding template-config files..."
+
+                  if [ -n "$temaplate_config_file" ]; then
+                          cp -p  "$temaplate_config_file" "$tmpdir/mnt"
+                  else
+                          echo "No $meta_data_file template profile available."
+                  fi
+
+                  rm $tmpdir/$package_name
+                  log "🚽 Deleted temporary file $tmpdir/$package_name."
+        fi
+
+        # After application starting up, todo it
+        if [ -n "${job_name}" ]; then
+                cp -p ${job_name}  $tmpdir
+                cp rc-local.service $tmpdir
+                log "📁 Moving ${job_name} file to temporary working directory $tmpdir/mnt/script."
+        fi
+
+         if [ -n "${service_dir_name}" ]; then
+                [[ ! -d ${service_dir_name} ]] && die "👿 ${service_dir_name} is not a legal directory."
+                variable=${service_dir_name}
+                cp -rp ${variable%%/}  $tmpdir/mnt/
+                log "📁 Moving ${variable%%/} directory to temporary working directory $tmpdir/mnt/ "
+         fi
 fi
 
 # Update the md5 value of the grub.cfg file
