@@ -4,3 +4,5 @@ mariadb-server
 gcc
 keepalived
 samba samba-common
+x11-apps
+qemu-kvm virt-manager libvirt-daemon-system virtinst libvirt-clients bridge-utils

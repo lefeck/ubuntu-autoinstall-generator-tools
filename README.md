@@ -442,9 +442,9 @@ Note: In the late-command, I will copy the service directory to /cdrom/mnt, this
     - curtin in-target --target=/target -- ln -sn /lib/systemd/system/app.service /etc/systemd/system/multi-user.target.wants/app.service
 ```
 
-Finally, You need to specify the app directory of the local application, specified by the -x -s parameter, The commands are as follows:
+Finally, You need to specify the app directory of the local application, specified by the -s parameter, The commands are as follows:
 ```shell
-root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n  jammy  -p -f package-name.txt -i -j rc.local  -x  -s /root/service -d ubuntu-autoinstall-jammytest.iso             
+root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy  -p  package-name.txt -j rc.local  -s /root/service -d ubuntu-autoinstall-jammytest.iso             
 [2022-12-16 10:43:27] 👶 Starting up...
 [2022-12-16 10:43:27] 🔎 Checking for current release...
 [2022-12-16 10:43:29] 💿 Current release is 22.04.1

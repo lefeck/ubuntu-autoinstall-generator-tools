@@ -1,0 +1,144 @@
+#cloud-config
+autoinstall:
+  apt:
+    disable_components: []
+    disable_suites: [security]
+    geoip: true
+    preserve_sources_list: false
+    primary:
+    - arches:
+      - amd64
+      - i386
+      uri: https://mirrors.tuna.tsinghua.edu.cn/ubuntu
+    - arches:
+      - default
+      uri: http://ports.ubuntu.com/ubuntu-ports
+  drivers:
+    install: false
+  identity:
+    hostname: ubuntu
+    # default password: 12345
+    password: $6$FnHPy.4giHfDcI8r$vllY94AceZFt20M6WzxXKfOLuycO7o8QD8RJJwVs/DSGcHNNF4ilbGrukXPMA3irAdiimHo0fl2zUdkbRO9vh1
+    realname: ubuntu
+    username: ubuntu
+  kernel:
+    package: linux-generic
+  keyboard:
+    layout: us
+    toggle: null
+    variant: ''
+  locale: en_US.UTF-8
+  network:
+    ethernets:
+      # Note: This NIC name ens136 is my custom name, during installation, if you specify the config-network.sh script, it will
+      # be automatically changed to the first NIC name of the machine itself
+      ens136:
+        addresses:
+        - 192.168.10.104/24
+        gateway4: 192.168.10.1
+        nameservers:
+          addresses:
+          - 114.114.114.114
+          search: []
+    version: 2
+  ssh:
+    allow-pw: true
+    authorized-keys: []
+    install-server: true
+  storage:
+    config:
+    - ptable: gpt
+      path: /dev/sda
+      wipe: superblock-recursive
+      preserve: false
+      name: ''
+      grub_device: true
+      type: disk
+      id: disk-sda
+    - device: disk-sda
+      size: 1048576
+      flag: bios_grub
+      number: 1
+      preserve: false
+      grub_device: false
+      type: partition
+      id: partition-0
+    - device: disk-sda
+      size: 2147483648
+      wipe: superblock
+      flag: ''
+      number: 2
+      preserve: false
+      grub_device: false
+      type: partition
+      id: partition-1
+    - fstype: ext4
+      volume: partition-1
+      preserve: false
+      type: format
+      id: format-0
+    - device: disk-sda
+      size: 4294967296
+      wipe: superblock
+      flag: swap
+      number: 3
+      preserve: false
+      grub_device: false
+      type: partition
+      id: partition-2
+    - fstype: swap
+      volume: partition-2
+      preserve: false
+      type: format
+      id: format-1
+    - path: ''
+      device: format-1
+      type: mount
+      id: mount-1
+    - device: disk-sda
+      size: -1
+      wipe: superblock
+      flag: ''
+      number: 4
+      preserve: false
+      grub_device: false
+      type: partition
+      id: partition-3
+    - fstype: ext4
+      volume: partition-3
+      preserve: false
+      type: format
+      id: format-2
+    - path: /
+      device: format-2
+      type: mount
+      id: mount-2
+    - path: /bootq
+      device: format-0
+      type: mount
+      id: mount-0
+    swap:
+      swap: 0
+    grub:
+      # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
+      reorder_uefi: False
+  version: 1
+  timezone: Asia/Shanghai
+  late-commands:
+    - cp -rp /cdrom/mnt /target/
+    - chmod +x /target/mnt/script/install-pkgs.sh
+    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+    # copy template file to specify dirctory
+    - curtin in-target --target=/target -- cp /mnt/sliver-peak-template.xml /root/sliver-peak.xml
+    # copy local file to ISO
+    - cp -rp /cdrom/mnt/service  /target/opt
+    # to change template file parameters
+    - chmod +x /target/mnt/script/config.sh
+    - curtin in-target --target=/target -- /mnt/script/config.sh
+
+    # startup kvm images to loading template file
+    - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
+    - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
+    - cp -p /cdrom/rc.local /target/etc/rc.local
+    - chmod +x /target/etc/rc.local
+    - systemctl daemon-reload

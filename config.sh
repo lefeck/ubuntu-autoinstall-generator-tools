@@ -19,6 +19,33 @@ sed -i '/^#thread_cache_size/c\thread_cache_size = 32' /etc/mysql/mariadb.conf.d
 sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config
 sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
 echo "MsTac@2001" | passwd  root --stdin > /dev/null 2>&1
+
+cp /etc/netplan/00-installer-config.yaml /etc/netplan/00-installer-config.yaml.bak
+tee -a /etc/netplan/00-installer-config.yaml < EOF
+network:
+  ethernets:
+    ens160:
+      dhcp4: false
+      dhcp6: false
+  # add configuration for bridge interface
+  bridges:
+    br0:
+      interfaces: [ens160]
+      dhcp4: false
+      addresses: [192.168.10.141/24]
+      macaddress: 08:00:27:4b:1d:45
+      routes:
+        - to: default
+          via: 192.168.10.1
+          metric: 100
+      nameservers:
+        addresses: [114.114.114.114]
+      parameters:
+        stp: false
+      dhcp6: false
+  version: 2
+EOF
+
 # configure the Nic name
 Nic_Name=`cat /proc/net/dev | awk '{i++; if(i>2){print $1}}' | sed 's/^[\t]*//g' | sed 's/[:]*$//g' | grep -v "lo"  | head -n 1`
 sed -i "s/    ens136/    ${Nic_Name}/g" /etc/netplan/00-installer-config.yaml

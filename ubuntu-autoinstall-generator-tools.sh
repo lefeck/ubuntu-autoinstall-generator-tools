@@ -371,14 +371,14 @@ if [ ${all_in_one} -eq 1 ]; then
                           chmod +x "$config_data_file"
                           cp -rp  "$config_data_file" "$exec_script_dir"
                   else
-                          echo "No $meta_data_file config profile available."
+                          echo "No $config_data_file config profile available."
                   fi
                   log "🧩 Adding template-config files..."
 
                   if [ -n "$temaplate_config_file" ]; then
                           cp -p  "$temaplate_config_file" "$tmpdir/mnt"
                   else
-                          echo "No $meta_data_file template profile available."
+                          echo "No $temaplate_config_file template profile available."
                   fi
 
                   rm $tmpdir/$package_name
