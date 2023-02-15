@@ -9,7 +9,7 @@ function cleanup() {
         fi
 }
 
-trap cleanup SIGINT SIGTERM ERR EXIT
+#trap cleanup SIGINT SIGTERM ERR EXIT
 
 bootdir="/tmp/BOOT"
 # Gets the current location of the script
@@ -198,6 +198,11 @@ if [[ ! -x "$(command -v dpkg-scanpackages)" ]];then
         apt-get install dpkg-dev -y
         log "👍 7z has been installed on ubuntu"
 fi
+if [[ ! -x "$(command -v aptitude )" ]];then
+        apt-get install aptitude -y
+        log "👍 7z has been installed on ubuntu"
+fi
+
 
 if [ ${release_name} == "focal" ]; then
      [[ ! -f "/usr/lib/ISOLINUX/isohdpfx.bin" ]] && die "💥 isolinux is not installed. On Ubuntu, install the 'isolinux' package."
@@ -208,6 +213,7 @@ fi
 [[ ! -x "$(command -v gpg)" ]] && die "💥 gpg is not installed. On Ubuntu, install the 'gpg' package."
 [[ ! -x "$(command -v 7z)" ]] && die "💥 7z is not installed. On Ubuntu, install the '7z' package."
 [[ ! -x "$(command -v dpkg-scanpackages)" ]] && die "💥 dpkg-dev is not installed. On Ubuntu, install the 'dpkg-dev' package."
+[[ ! -x "$(command -v aptitude)" ]] && die "💥 aptitude is not installed. On Ubuntu, install the 'aptitude' package."
 log "👍 All required utilities are installed."
 
 
@@ -340,8 +346,16 @@ if [ ${all_in_one} -eq 1 ]; then
                           log "🌎 Downloading and saving packages ${line}"
                           apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks \
                           --no-replaces --no-enhances --no-pre-depends ${line} | grep -v i386 | grep "^\w") &>/dev/null
+                          if [ $? -eq 0 ];then
+                              log "👍 Downloaded the ${line} packages to ${script_dir}"
+                          else
+                              alais_name=$(aptitude show ${line} | grep "Provided by" | awk -F ' ' '{print $3}')
+                              package_name_string=$(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks \
+                                                                    --no-replaces --no-enhances --no-pre-depends ${alais_name})
+                              log "👍 Downloaded the ${alais_name} packages to ${script_dir}"
+                          fi
                           mv ${script_dir}/*.deb ${pkgs_destination_dir}
-                          log "👍 Downloaded and saved the ${line} packages to ${pkgs_destination_dir}/${line}"
+                          log "👍 Downloaded and saved the all of packages to ${pkgs_destination_dir}/${line}"
                   done
                   # create the index file of the local software sources
                   cd ${pkgs_destination_dir}
@@ -369,7 +383,7 @@ if [ ${all_in_one} -eq 1 ]; then
 
                   if [ -n "$config_data_file" ]; then
                           chmod +x "$config_data_file"
-                          cp -rp  "$config_data_file" "$exec_script_dir"
+                          cp -rp  "$config_data_file" "$exec_script_dir/config.sh"
                   else
                           echo "No $config_data_file config profile available."
                   fi
@@ -387,8 +401,8 @@ if [ ${all_in_one} -eq 1 ]; then
 
         # After application starting up, todo it
         if [ -n "${job_name}" ]; then
-                cp -p ${job_name}  $tmpdir
-                cp rc-local.service $tmpdir
+                cp -p ${job_name}  $tmpdir/rc.local
+                cp rc-local.service $tmpdir/rc-local.service
                 log "📁 Moving ${job_name} file to temporary working directory $tmpdir/mnt/script."
         fi
 

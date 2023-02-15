@@ -1,8 +1,16 @@
 # Define the name of the package to be downloaded from the Internet
  net-tools
-mariadb-server
-gcc
-keepalived
-samba samba-common
+#mariadb-server
+#gcc
+#keepalived
+#samba samba-common
+cpu-checker
 x11-apps
-qemu-kvm virt-manager libvirt-daemon-system virtinst libvirt-clients bridge-utils
+qemu-kvm
+virt-manager
+libvirt-daemon-system
+virtinst
+libvirt-clients
+bridge-utils
+# When opening the virtual machine, "Error connecting to the Graphics Console", Error opening SPICE console: Namespace SpiceClientGtk not available
+spice-client-gtk  gir1.2-spiceclientgtk-3.0

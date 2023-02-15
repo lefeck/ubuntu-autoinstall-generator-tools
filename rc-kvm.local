@@ -42,32 +42,50 @@ function fn_log ()  {
 }
 
 # this is an example of password mysql change
+# change modfiy password
+echo "MsTac@2001" | passwd  root --stdin > /dev/null 2>&1
+
+# add network interface card
+#nic_list=`cat /proc/net/dev | awk '{i++; if(i>2){print $1}}' | sed 's/^[\t]*//g' | sed 's/[:]*$//g' | grep -v "lo" | grep -v "macvtap"`
+#j=0
+## shellcheck disable=SC2068
+#for i in ${nic_list[@]}; do
+#	j=$(expr $j + 1)
+#	ip link add link ${i} name macvtap${j} type macvtap mode bridge
+#done
+
 IMG="ECV-8.3.3.5_86013.qcow2"
 while true; do
     process_num=`ps -ef | grep libvirtd  | grep -v grep | wc -l`
-    if [ $process_num -ne 0 ]; then
+    if [ $process_num -eq 0 ]; then
         log_info "waiting for 2s"
         sleep 2
-        virsh list | grep "running" | awk '{print $3}'
+        virsh list --all  | awk 'NR==3' | awk '{print $3$4}'
         if [  $? -eq 0 ]; then
            log_info  "sliver-peak is running"
-           rm -rf /root/sliver-peak.xml
+           rm -rf /opt/sliver-peak-template.xml
         else
            log_info  "Deploy a VM and enable automatic startup for the VM"
-           virsh define /root/sliver-peak.xml
+           virsh define /opt/sliver-peak-template.xml
            virsh start sliver-peak
            virsh autostart sliver-peak
-           virsh list | grep "running" | awk '{print $3}'
+           virsh list --all  | awk 'NR==3' | awk '{print $3$4}'
            if [ $? -eq 0 ]; then
                log_info  "sliver-peak is running"
-               rm -rf /root/sliver-peak.xml
+               rm -rf /opt/sliver-peak-template.xml
            fi
+           break
         fi
+        break
     else
         sleep 2
         log_info "waiting for 2s"
     fi
 done
 fn_log "Clean files ${file}"
+for i in {0..9}; do
+        ip link set dev macvtap${i} allmulticast on
+        log_info "add multicast in macvtap${i}"
+done
 rm  -f ${file}
 exit 0

@@ -40,6 +40,8 @@ autoinstall:
           addresses:
           - 114.114.114.114
           search: []
+      ens192: { dhcp4: true }
+      ens224: { dhcp4: true }
     version: 2
   ssh:
     allow-pw: true
@@ -129,16 +131,16 @@ autoinstall:
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
     # copy template file to specify dirctory
-    - curtin in-target --target=/target -- cp /mnt/sliver-peak-template.xml /root/sliver-peak.xml
+    - curtin in-target --target=/target -- mv /mnt/sliver-peak-template.xml /opt
     # copy local file to ISO
     - cp -rp /cdrom/mnt/service  /target/opt
     # to change template file parameters
     - chmod +x /target/mnt/script/config.sh
     - curtin in-target --target=/target -- /mnt/script/config.sh
-
     # startup kvm images to loading template file
     - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
     - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
     - cp -p /cdrom/rc.local /target/etc/rc.local
     - chmod +x /target/etc/rc.local
     - systemctl daemon-reload
+    - rm -rf /target/mnt/service
