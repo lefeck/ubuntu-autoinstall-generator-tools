@@ -1,29 +1,26 @@
 #!/bin/bash
 #
 
-script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
-
 # usage of the command line tool
 function menu(){
 cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [1] [2] [3] [4]
+Usage: $(basename "${BASH_SOURCE[0]}") [h] [1] [2] [3] [4] [q]
 
 💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
 
 Available options:
-    h   获取当前菜单
-    1   构建基础镜像
-    2   构建带有安装包的镜像
-    3   构建带有安装包及本地服务的镜像，仅支持esxi
-    4   构建带有安装包及本地服务的镜像，仅用于kvm
-    q   退出脚本
-EOF
+       h Get the current menu
+       1 Build the base image
+       2 Build image with installer
+       3 Build image with installer and local services, esxi only
+       4 Build image with installer and local services, only for kvm
+       q Exit script
 exit
+EOF
 }
-menu
 
-while true; do
-read -p "请输入你要构建镜像的编号:" value
+
+read -p "please input your build images ID:" value
 case $value in
     h)
     menu
@@ -46,4 +43,3 @@ case $value in
     exit
     ;;
 esac
-done
