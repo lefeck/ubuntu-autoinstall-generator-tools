@@ -187,7 +187,7 @@ fi
 
 log "🔎 Checking for required utilities..."
 if [[ ! -x "$(command -v xorriso)" ]];then
-        apt-get install xorriso -y
+        apt-get install xorriso isolinux binutils  fakeroot -y
         log "👍 xorriso has been installed on ubuntu"
 fi
 if [[ ! -x "$(command -v 7z)" ]];then
@@ -196,17 +196,17 @@ if [[ ! -x "$(command -v 7z)" ]];then
 fi
 if [[ ! -x "$(command -v dpkg-scanpackages)" ]];then
         apt-get install dpkg-dev -y
-        log "👍 7z has been installed on ubuntu"
+        log "👍 dpkg-dev has been installed on ubuntu"
 fi
 if [[ ! -x "$(command -v aptitude )" ]];then
         apt-get install aptitude -y
-        log "👍 7z has been installed on ubuntu"
+        log "👍 aptitude has been installed on ubuntu"
 fi
-
 
 if [ ${release_name} == "focal" ]; then
      [[ ! -f "/usr/lib/ISOLINUX/isohdpfx.bin" ]] && die "💥 isolinux is not installed. On Ubuntu, install the 'isolinux' package."
 fi
+
 [[ ! -x "$(command -v xorriso)" ]] && die "💥 xorriso is not installed. On Ubuntu, install  the 'xorriso' package."
 [[ ! -x "$(command -v sed)" ]] && die "💥 sed is not installed. On Ubuntu, install the 'sed' package."
 [[ ! -x "$(command -v curl)" ]] && die "💥 curl is not installed. On Ubuntu, install the 'curl' package."
@@ -390,11 +390,33 @@ if [ ${all_in_one} -eq 1 ]; then
                   log "🧩 Adding template-config files..."
 
                   if [ -n "$temaplate_config_file" ]; then
-                          cp -p  "$temaplate_config_file" "$tmpdir/mnt"
+                         case ${temaplate_config_file##*.} in
+                          xml)
+                                 cp -p  "$temaplate_config_file" "$tmpdir/mnt/template.xml"
+                                 ;;
+                          conf|cnf)
+                                 cp -p  "$temaplate_config_file" "$tmpdir/mnt/template.conf"
+                                 ;;
+                          yaml|yml)
+                                 cp -p  "$temaplate_config_file" "$tmpdir/mnt/template.yaml"
+                                 ;;
+                          ini)
+                                 cp -p  "$temaplate_config_file" "$tmpdir/mnt/template.ini"
+                                 ;;
+                          toml)
+                                 cp -p  "$temaplate_config_file" "$tmpdir/mnt/template.toml"
+                                 ;;
+                          json)
+                                 cp -p  "$temaplate_config_file" "$tmpdir/mnt/template.json"
+                                 ;;
+                          *)
+                                 echo "${temaplate_config_file##*.} template profile do not support this format. Usage: xml,conf,yaml,ini,toml,json. "
+                                 exit 1
+                                 ;;
+                         esac
                   else
-                          echo "No $temaplate_config_file template profile available."
+                          log "No $temaplate_config_file template profile available."
                   fi
-
                   rm $tmpdir/$package_name
                   log "🚽 Deleted temporary file $tmpdir/$package_name."
         fi

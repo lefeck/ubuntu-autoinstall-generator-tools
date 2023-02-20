@@ -16,10 +16,11 @@ autoinstall:
   drivers:
     install: false
   identity:
-    hostname: wsa
-    password: $6$8uAtTxrhimflt9dY$Oy9I5tgs6iBdGhKVQFMTMoQYPINr5qgwvYlfjCF24eaNqRITSENsvbUA1DhkXWZ4bJNL2iJ/VMKjIiAG.UhWt0
-    realname: wsa
-    username: wsa
+    hostname: ubuntu
+    # default password: 12345
+    password: $6$FnHPy.4giHfDcI8r$vllY94AceZFt20M6WzxXKfOLuycO7o8QD8RJJwVs/DSGcHNNF4ilbGrukXPMA3irAdiimHo0fl2zUdkbRO9vh1
+    realname: ubuntu
+    username: ubuntu
   kernel:
     package: linux-generic
   keyboard:
@@ -72,17 +73,3 @@ autoinstall:
       reorder_uefi: False
   version: 1
   timezone: Asia/Shanghai
-  late-commands:
-    - cp -rp /cdrom/mnt /target/
-    - chmod +x /target/mnt/script/install-pkgs.sh
-    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
-    - chmod +x /target/mnt/script/config.sh
-    - curtin in-target --target=/target -- /mnt/script/config.sh
-    - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
-    - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
-    - cp -p /cdrom/rc.local /target/etc/rc.local
-    - chmod +x /target/etc/rc.local
-    - systemctl daemon-reload
-    - cp -rp /cdrom/mnt/wsa  /target/opt
-    - cp /cdrom/mnt/wsa/wsa.service /target/lib/systemd/system/wsa.service
-    - curtin in-target --target=/target -- ln -sn /lib/systemd/system/wsa.service  /etc/systemd/system/multi-user.target.wants/wsa.service

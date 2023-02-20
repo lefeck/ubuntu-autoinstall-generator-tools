@@ -6,13 +6,13 @@ autoinstall:
     geoip: true
     preserve_sources_list: false
     primary:
-    - arches:
-      - amd64
-      - i386
-      uri: https://mirrors.tuna.tsinghua.edu.cn/ubuntu
-    - arches:
-      - default
-      uri: http://ports.ubuntu.com/ubuntu-ports
+      - arches:
+          - amd64
+          - i386
+        uri: http://archive.ubuntu.com/ubuntu
+      - arches:
+          - default
+        uri: http://ports.ubuntu.com/ubuntu-ports
   drivers:
     install: false
   identity:
@@ -34,11 +34,11 @@ autoinstall:
       # be automatically changed to the first NIC name of the machine itself
       ens136:
         addresses:
-        - 192.168.10.104/24
-        gateway4: 192.168.10.1
+          - 192.168.6.100/24
+        gateway4: 192.168.6.1
         nameservers:
           addresses:
-          - 114.114.114.114
+            - 114.114.114.114
           search: []
     version: 2
   ssh:
@@ -47,76 +47,25 @@ autoinstall:
     install-server: true
   storage:
     config:
-    - ptable: gpt
-      path: /dev/sda
-      wipe: superblock-recursive
-      preserve: false
-      name: ''
-      grub_device: true
-      type: disk
-      id: disk-sda
-    - device: disk-sda
-      size: 1048576
-      flag: bios_grub
-      number: 1
-      preserve: false
-      grub_device: false
-      type: partition
-      id: partition-0
-    - device: disk-sda
-      size: 2147483648
-      wipe: superblock
-      flag: ''
-      number: 2
-      preserve: false
-      grub_device: false
-      type: partition
-      id: partition-1
-    - fstype: ext4
-      volume: partition-1
-      preserve: false
-      type: format
-      id: format-0
-    - device: disk-sda
-      size: 4294967296
-      wipe: superblock
-      flag: swap
-      number: 3
-      preserve: false
-      grub_device: false
-      type: partition
-      id: partition-2
-    - fstype: swap
-      volume: partition-2
-      preserve: false
-      type: format
-      id: format-1
-    - path: ''
-      device: format-1
-      type: mount
-      id: mount-1
-    - device: disk-sda
-      size: -1
-      wipe: superblock
-      flag: ''
-      number: 4
-      preserve: false
-      grub_device: false
-      type: partition
-      id: partition-3
-    - fstype: ext4
-      volume: partition-3
-      preserve: false
-      type: format
-      id: format-2
-    - path: /
-      device: format-2
-      type: mount
-      id: mount-2
-    - path: /bootq
-      device: format-0
-      type: mount
-      id: mount-0
+      # Partition table
+      - { ptable: gpt, path: /dev/sda, wipe: superblock-recursive, preserve: false, name: '', grub_device: true,type: disk, id: disk-sda }
+      - { device: disk-sda, size: 1048576, flag: bios_grub, number: 1, preserve: false, grub_device: false, offset: 1048576, type: partition, id: partition-0 }
+      # Linux boot partition size 2G
+      - { device: disk-sda, size: 2147483648, wipe: superblock, number: 2, preserve: false, grub_device: false, offset: 2097152, type: partition, id: partition-1 }
+      - { fstype: ext4, volume: partition-1, preserve: false, type: format, id: format-0 }
+      # Partition for LVM, VG
+      - { device: disk-sda, size: -1, wipe: superblock, number: 3, preserve: false, grub_device: false, offset: 2149580800, type: partition, id: partition-2 }
+      - { name: ubuntu-vg, devices: [ partition-2 ], preserve: false, type: lvm_volgroup, id: lvm_volgroup-0 }
+      # Swap size 1G
+      - { name: swap, volgroup: lvm_volgroup-0, size: 1073741824B, wipe: superblock, preserve: false, type: lvm_partition, id: lvm_partition-1 }
+      - { fstype: swap, volume: lvm_partition-1, preserve: false, type: format, id: format-1 }
+      # Remaining capacity size LV for the root partition
+      - { name: ubuntu-lv, volgroup: lvm_volgroup-0, size: -1, wipe: superblock, preserve: false, type: lvm_partition, id: lvm_partition-0 }
+      - { fstype: ext4, volume: lvm_partition-0, preserve: false, type: format, id: format-2 }
+      # Mount points
+      - { path: /, device: format-2, type: mount, id: mount-2 }
+      - { path: '', device: format-1, type: mount, id: mount-1 }
+      - { path: /boot, device: format-0, type: mount, id: mount-0 }
     swap:
       swap: 0
     grub:
@@ -135,6 +84,7 @@ autoinstall:
     - cp -p /cdrom/rc.local /target/etc/rc.local
     - chmod +x /target/etc/rc.local
     - systemctl daemon-reload
+    - # add local service application
     - cp -rp /cdrom/mnt/wsa  /target/opt
     - cp /cdrom/mnt/wsa/wsa.service /target/lib/systemd/system/wsa.service
     - curtin in-target --target=/target -- ln -sn /lib/systemd/system/wsa.service  /etc/systemd/system/multi-user.target.wants/wsa.service
