@@ -6,16 +6,20 @@ autoinstall:
     geoip: true
     preserve_sources_list: false
     primary:
-    - arches:
-      - amd64
-      - i386
-      uri: https://mirrors.tuna.tsinghua.edu.cn/ubuntu
-    - arches:
-      - default
-      uri: http://ports.ubuntu.com/ubuntu-ports
+      - arches:
+          - amd64
+          - i386
+        uri: http://archive.ubuntu.com/ubuntu
+      - arches:
+          - default
+        uri: http://ports.ubuntu.com/ubuntu-ports
   drivers:
     install: false
   identity:
+#    hostname: wsa
+#    password: $6$8uAtTxrhimflt9dY$Oy9I5tgs6iBdGhKVQFMTMoQYPINr5qgwvYlfjCF24eaNqRITSENsvbUA1DhkXWZ4bJNL2iJ/VMKjIiAG.UhWt0
+#    realname: wsa
+#    username: wsa
     hostname: ubuntu
     # default password: 12345
     password: $6$FnHPy.4giHfDcI8r$vllY94AceZFt20M6WzxXKfOLuycO7o8QD8RJJwVs/DSGcHNNF4ilbGrukXPMA3irAdiimHo0fl2zUdkbRO9vh1
@@ -34,11 +38,11 @@ autoinstall:
       # be automatically changed to the first NIC name of the machine itself
       ens136:
         addresses:
-        - 192.168.10.104/24
-        gateway4: 192.168.10.1
+          - 192.168.6.100/24
+        gateway4: 192.168.6.1
         nameservers:
           addresses:
-          - 114.114.114.114
+            - 114.114.114.114
           search: []
     version: 2
   ssh:
