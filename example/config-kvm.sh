@@ -29,10 +29,7 @@ for i in ${nic_names[*]};do
     fi
 done
 
-nic_sort_names=$(echo ${new_nic_names[*]} | tr ' ' '\n' | sort -n)
-echo ${nic_sort_names} | tr -s "\r\n" " " > /dev/null
-nic_name=$(echo ${nic_sort_names} | awk '{print $1}')
-echo $nic_name
+nic_name=$(echo ${new_nic_names[*]} | tr ' ' '\n' | sort -n | head -1)
 sed -i "s/    ens136/    ${nic_name}/g" /etc/netplan/00-installer-config.yaml
 }
 
@@ -76,15 +73,13 @@ sed -i "s/free_mem/${free_size}/g" ${template_file}
 
 # add network interface card for template file
 #nic_list=$(cat /proc/net/dev | awk '{i++; if(i>2){print $1}}' | sed 's/^[\t]*//g' | sed 's/[:]*$//g' | grep -v "lo" | sort -n | grep -v "macvtap")
-
 # get all of the physical nic names
 nic_list=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
 j=-1
 # shellcheck disable=SC2068
 for i in ${nic_list[@]}; do
   j=$(expr $j + 1)
-  nic_str="nic_str"
-  nic_str_constant=$(echo nic_str${j})
+  nic_str_constant="nic_${j}_str"
 	# to change the mac address from template file
 	grep ${nic_str_constant}  ${template_file}
 	if [ $? -eq 0 ];then
@@ -94,19 +89,10 @@ for i in ${nic_list[@]}; do
 	fi
 done
 
-# centos 7 is ture
-# get the cpu model of the physical machine
-#cpu_string=$(virsh  capabilities | grep "<model>" | head -n 1)
-#cpu_sub_string=$(echo ${cpu_string%<*})
-#cpu_mid_string=$(echo ${cpu_sub_string##*>})
-#echo $cpu_mid_string
-#
-## to change the cpu model from template file
-#sed -i "s/${cpu_str}/${cpu_mid_string}/g" ${template_file}
-
+# local service
 img="ECV-8.3.3.5_86013.qcow2"
 mv /opt/service/img/${img} /var/lib/libvirt/images/
 chmod 755 /var/lib/libvirt/images/${img}
 mv /opt/service/bin/getsn  /usr/local/bin
 chmod +x /usr/local/bin/getsn || true
-#rm -rf /opt/service
+rm -rf /opt/service

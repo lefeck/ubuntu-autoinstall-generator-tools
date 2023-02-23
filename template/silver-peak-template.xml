@@ -45,43 +45,43 @@ or other application using the libvirt API.
             <target dev='vda' bus='virtio'/>
         </disk>
         <interface type='direct'>
-            <source dev='nic_str0' mode='bridge'/>
+            <source dev='nic_0_str' mode='bridge'/>
             <model type='virtio'/>
         </interface>
         <interface type='direct'>
-            <source dev='nic_str1' mode='bridge'/>
+            <source dev='nic_1_str' mode='bridge'/>
             <model type='virtio'/>
         </interface>
         <interface type='direct'>
-            <source dev='nic_str2' mode='bridge'/>
+            <source dev='nic_2_str' mode='bridge'/>
             <model type='virtio'/>
         </interface>
         <interface type='direct'>
-            <source dev='nic_str3' mode='bridge'/>
+            <source dev='nic_3_str' mode='bridge'/>
             <model type='virtio'/>
         </interface>
         <interface type='direct'>
-            <source dev='nic_str4' mode='bridge'/>
+            <source dev='nic_4_str' mode='bridge'/>
             <model type='virtio'/>
         </interface>
         <interface type='direct'>
-            <source dev='nic_str5' mode='bridge'/>
+            <source dev='nic_5_str' mode='bridge'/>
             <model type='virtio'/>
         </interface>
         <interface type='direct'>
-            <source dev='nic_str6' mode='bridge'/>
+            <source dev='nic_6_str' mode='bridge'/>
             <model type='virtio'/>
         </interface>
         <interface type='direct'>
-            <source dev='nic_str7' mode='bridge'/>
+            <source dev='nic_7_str' mode='bridge'/>
             <model type='virtio'/>
         </interface>
         <interface type='direct'>
-            <source dev='nic_str8' mode='bridge'/>
+            <source dev='nic_8_str' mode='bridge'/>
             <model type='virtio'/>
         </interface>
         <interface type='direct'>
-            <source dev='nic_str9' mode='bridge'/>
+            <source dev='nic_9_str' mode='bridge'/>
             <model type='virtio'/>
         </interface>
         <serial type='pty'>
