@@ -167,7 +167,7 @@ Note: Except for the sed command line, which can be changed, other commands are 
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
-    # modfiy mydql parameters of the configruation， as the following:
+    # modfiy mysql parameters of the configruation， as the following:
     - sed -i '/^bind-address/c\port = 13306' /target/etc/mysql/mariadb.conf.d/50-server.cnf
     - sed -i '/^#key_buffer_size/c\key_buffer_size = 128M' /target/etc/mysql/mariadb.conf.d/50-server.cnf
 ```
