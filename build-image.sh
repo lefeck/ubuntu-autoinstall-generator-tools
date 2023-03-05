@@ -13,7 +13,8 @@ Available options:
        s Build the base image
        n Build image with installer
        a Build image with installer and local services, esxi only
-       k Build image with installer and local services, only for kvm
+       ke Build image with installer and local services, only in the esxi for kvm
+       kh Build image with installer and local services, only in the hardware for kvm
        q Exit script
 EOF
 }
@@ -35,10 +36,14 @@ case $value in
     bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u  example/user-data-local-service.yml -n focal -p package-name.txt -c example/config-all.sh  \
               -j rc.local -s /root/service -d ubuntu-autoinstall-local-service.iso
     ;;
-    k)
+    ke)
     bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u example/user-data-kvm-esxi.yml -n focal -p package-name.txt -c example/config-kvm.sh \
           -j rc-kvm.local -t template/silver-peak-template.xml  -s /root/service -d ubuntu-autoinstall-silver-peak.iso -k 0
     ;;
+    kh)
+    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u example/user-data-kvm-hardware.yml -n focal -p package-name.txt -c example/config-kvm.sh \
+            -j rc-kvm.local -t template/silver-peak-template.xml  -s /root/service -d ubuntu-autoinstall-silver-peak.iso -k 0
+      ;;
     q)
     exit
     ;;

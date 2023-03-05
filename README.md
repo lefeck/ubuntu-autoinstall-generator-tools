@@ -4,7 +4,7 @@ A script to generate a fully-automated ISO image for installing Ubuntu onto a ma
 
 ##  Requirements
 
-Tested on a host running Ubuntu machine
+Tested on a host running Ubuntu System
 - Utilities required:
  ```
 xorriso
@@ -159,15 +159,52 @@ When you specify -p in your script to download the dependencies from the Interne
 The following is an example of a mysql config file change operation, Three flexible methods are provided here, choose any one of them.
 
 #### 1. You can modify the configuration file by using the linux command, for example:
+
+You can modify the parameters of the configuration file directly with the linux command in the late-command configuration section of user-dat, for example:
 Note: Except for the sed command line, which can be changed, other commands are not allowed.
 ```yaml
   late-commands:
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+    # modfiy mydql parameters of the configruation， as the following:
     - sed -i '/^bind-address/c\port = 13306' /target/etc/mysql/mariadb.conf.d/50-server.cnf
     - sed -i '/^#key_buffer_size/c\key_buffer_size = 128M' /target/etc/mysql/mariadb.conf.d/50-server.cnf
 ```
+Finally, you need to specify on the command line the package-name.txt that you want to download the installer from, with the -p parameter.
+```
+root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p package-name.txt -d ubuntu-autoinstall-jammytest.iso      
+[2022-12-14 01:03:12] 👶 Starting up...
+[2022-12-14 01:03:12] 🔎 Checking for current release...
+[2022-12-14 01:03:13] 💿 Current release is 22.04.1
+[2022-12-14 01:03:14] 📁 Created temporary working directory /tmp/tmp.OYliQ5b0VL
+[2022-12-14 01:03:14] 🔎 Checking for required utilities...
+[2022-12-14 01:03:14] 👍 All required utilities are installed.
+[2022-12-14 01:03:14] ☑️ Using existing /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-22.04.1-live-server-amd64.iso file.
+[2022-12-14 01:03:14] ☑️ Using existing SHA256SUMS-22.04.1 & SHA256SUMS-22.04.1.gpg files.
+[2022-12-14 01:03:14] ☑️ Using existing Ubuntu signing key saved in /root/ubuntu20/ubuntu-autoinstall-generator-tools/843938DF228D22F7B3742BC0D94AA3F0EFE21092.keyring
+[2022-12-14 01:03:14] 🔐 Verifying /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-22.04.1-live-server-amd64.iso integrity and authenticity...
+[2022-12-14 01:03:24] 👍 Verification succeeded.
+[2022-12-14 01:03:24] 🔧 Extracting ISO image...
+[2022-12-14 01:03:27] 👍 Extracted to /tmp/tmp.OYliQ5b0VL
+[2022-12-14 01:03:27] 🌎 Downloading and saving packages tcpdump
+[2022-12-14 01:04:48] 🌎 Downloading and saving packages net-tools
+[2022-12-14 01:04:51] 🌎 Downloading and saving packages gcc
+[2022-12-14 01:10:52] 🌎 Downloading and saving packages mysql-server
+[2022-12-14 01:16:23] 👍 Downloaded packages and saved to /tmp/tmp.OYliQ5b0VL/mnt/pkgs
+[2022-12-14 01:16:23] 🧩 Adding autoinstall parameter to kernel command line...
+[2022-12-14 01:16:23] 👍 Added parameter to UEFI and BIOS kernel command lines.
+[2022-12-14 01:16:23] 🧩 Adding user-data and meta-data files...
+[2022-12-14 01:16:23] 👍 Added data and configured kernel command line.
+[2022-12-14 01:16:23] 👷 Updating /tmp/tmp.OYliQ5b0VL/md5sum.txt with hashes of modified files...
+[2022-12-14 01:16:23] 👍 Updated hashes.
+[2022-12-14 01:16:23] 📦 Repackaging extracted files into an ISO image...
+[2022-12-14 01:16:38] 👍 Repackaged into /root/ubuntu/ubuntu-autoinstall-generator-tools/ubuntu-autoinstall-jammy.iso
+[2022-12-14 01:16:38] ✅ Completed.
+[2022-12-14 01:16:38] 🚽 Deleted temporary working directory /tmp/tmp.OYliQ5b0VL
+```
+
+
 #### 2. You can modify the configration file by useing the shell script, use the following methods
 
 You should custom configure the config.sh script, and then reference it in the late-command, for example:
@@ -444,7 +481,7 @@ Note: In the late-command, I will copy the service directory to /cdrom/mnt, this
 
 Finally, You need to specify the app directory of the local application, specified by the -s parameter, The commands are as follows:
 ```shell
-root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy  -p  package-name.txt -j rc.local  -s /root/service -d ubuntu-autoinstall-jammytest.iso             
+root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy  -p  package-name.txt -j rc.local  -s /root/service -d ubuntu-autoinstall-jammytest.iso             
 [2022-12-16 10:43:27] 👶 Starting up...
 [2022-12-16 10:43:27] 🔎 Checking for current release...
 [2022-12-16 10:43:29] 💿 Current release is 22.04.1

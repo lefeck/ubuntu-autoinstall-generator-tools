@@ -63,19 +63,23 @@ while true; do
                 rm -rf ${path}
                 break
             else
-                fn_log "silver-peak cannot be started "
+                log_error "silver-peak cannot be started "
                 break
             fi
         else
-            fn_log "template file parameter error "
+            log_error "template file parameter error "
             break
         fi
     fi
 done
-fn_log "Clean files ${file}"
-for i in {0..9}; do
-        ip link set dev macvtap${i} allmulticast on
-        log_info "add multicast in macvtap${i}"
+
+nic_list=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
+new_nic_list=(${nic_list})
+echo ${#new_nic_list[@]}
+for ((i=0;i<=${#new_nic_list[@]};i++)); do
+  ip link set dev macvtap${i} allmulticast on
 done
+
+#fn_log "Clean files ${file}"
 #rm  -f ${file}
 exit 0

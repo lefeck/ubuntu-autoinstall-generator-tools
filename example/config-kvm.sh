@@ -5,7 +5,7 @@
 sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
 
 # change root password
-echo root:test123 | chpasswd
+echo root:1qaz@WSX | chpasswd
 
 # get all nic name for operation system, configure the one of Nic name
 function get_first_nic_name() {
