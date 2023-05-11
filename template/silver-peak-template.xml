@@ -41,11 +41,11 @@ or other application using the libvirt API.
         <emulator>/usr/bin/qemu-system-x86_64</emulator>
         <disk type='file' device='disk'>
             <driver name='qemu' type='qcow2'/>
-            <source file='/var/lib/libvirt/images/ECV-8.3.3.5_86013.qcow2'/>
+            <source file='source_file'/>
             <target dev='vda' bus='virtio'/>
         </disk>
-        <interface type='direct'>
-            <source dev='nic_0_str' mode='bridge'/>
+        <interface type='bridge'>
+            <source bridge='nic_0_str'/>
             <model type='virtio'/>
         </interface>
         <interface type='direct'>

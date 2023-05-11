@@ -42,7 +42,7 @@ function fn_log ()  {
 }
 
 
-path="/opt/template.xml"
+template_file="/opt/template.xml"
 while true; do
     process_num=`ps -ef | grep libvirtd  | grep -v grep | wc -l`
     if [ $process_num -eq 0 ]; then
@@ -52,7 +52,7 @@ while true; do
         log_info "waiting for 2s"
         sleep 2
         log_info  "Deploy a VM and enable automatic startup for the VM"
-        virsh define ${path}
+        virsh define ${template_file}
         if [ $? -eq 0 ]; then
             log_info  "enable automatic startup for the silver-peak"
             virsh start silver-peak
@@ -60,7 +60,7 @@ while true; do
             state=$(virsh list --all  | awk 'NR==3' | awk '{print $3$4}')
             if [  ${state} == "running" ]; then
                 log_info  "silver-peak is running"
-                rm -rf ${path}
+                rm -rf ${template_file}
                 break
             else
                 log_error "silver-peak cannot be started "
@@ -73,13 +73,9 @@ while true; do
     fi
 done
 
-nic_list=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
-new_nic_list=(${nic_list})
-echo ${#new_nic_list[@]}
-for ((i=0;i<=${#new_nic_list[@]};i++)); do
-  ip link set dev macvtap${i} allmulticast on
-done
-
+# exec script file
+source /opt/allmulticast.sh
+log_info  "exec script file /opt/allmulticast.sh"
 #fn_log "Clean files ${file}"
 #rm  -f ${file}
 exit 0

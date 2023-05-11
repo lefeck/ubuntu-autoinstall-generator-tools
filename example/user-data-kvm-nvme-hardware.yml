@@ -1,0 +1,163 @@
+#cloud-config
+autoinstall:
+  apt:
+    disable_components: []
+    disable_suites: [security]
+    geoip: true
+    preserve_sources_list: false
+    primary:
+    - arches:
+      - amd64
+      - i386
+      uri: https://mirrors.tuna.tsinghua.edu.cn/ubuntu
+    - arches:
+      - default
+      uri: http://ports.ubuntu.com/ubuntu-ports
+  drivers:
+    install: false
+  identity:
+    hostname: msa
+    # default password: 1qaz@WSX
+    password: $6$x666Mgrn9NRnY5bs$rQogVX3FO3JVFc7wzy4krvMUGiCP6/spTI/b/eVc5kr78AlA2LLf5dtm2yfljjzgUBX4.0Zd97PXHayWz4pFQ/
+    realname: msa
+    username: msa
+  kernel:
+    package: linux-generic
+  keyboard:
+    layout: us
+    toggle: null
+    variant: ''
+  locale: en_US.UTF-8
+  network:
+    version: 2
+    renderer: networkd
+    ethernets:
+      eth0:
+        dhcp4: false
+      eth1:
+        dhcp4: false
+      eth2:
+        dhcp4: false
+      eth3:
+        dhcp4: false
+      eth4:
+        dhcp4: false
+      eth5:
+        dhcp4: false
+      eth6:
+        dhcp4: false
+      eth7:
+        dhcp4: false
+      eth8:
+        dhcp4: false
+      eth9:
+        dhcp4: false
+    bridges:
+      br0:
+        interfaces: [ eth0 ]
+        addresses: [ 192.168.1.1/24 ]
+        routes:
+          - to: default
+            via: 192.168.1.254
+            metric: 100
+            on-link: true
+        nameservers:
+          addresses: [ 114.114.114.114 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br1:
+        interfaces: [ eth1 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br2:
+        interfaces: [ eth2 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br3:
+        interfaces: [ eth3 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br4:
+        interfaces: [ eth4 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br5:
+        interfaces: [ eth5 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br6:
+        interfaces: [ eth6 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br7:
+        interfaces: [ eth7 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br8:
+        interfaces: [ eth8 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br9:
+        interfaces: [ eth9 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+  ssh:
+    allow-pw: true
+    authorized-keys: []
+    install-server: true
+  storage:
+    config:
+      # Partition table
+      - { ptable: gpt, path: /dev/nvme0n1, wipe: superblock-recursive, preserve: false, name: '', grub_device: true,type: disk, id: disk-sda }
+      - { device: disk-sda, size: 1048576, flag: bios_grub, number: 1, preserve: false, grub_device: false, offset: 1048576, type: partition, id: partition-0 }
+      # Linux boot partition size 2G
+      - { device: disk-sda, size: 2147483648, wipe: superblock, number: 2, preserve: false, grub_device: false, offset: 2097152, type: partition, id: partition-1 }
+      - { fstype: ext4, volume: partition-1, preserve: false, type: format, id: format-0 }
+      # Partition for LVM, VG
+      - { device: disk-sda, size: -1, wipe: superblock, number: 3, preserve: false, grub_device: false, offset: 2149580800, type: partition, id: partition-2 }
+      - { name: ubuntu-vg, devices: [ partition-2 ], preserve: false, type: lvm_volgroup, id: lvm_volgroup-0 }
+      # Swap size 1G
+      - { name: swap, volgroup: lvm_volgroup-0, size: 1073741824B, wipe: superblock, preserve: false, type: lvm_partition, id: lvm_partition-1 }
+      - { fstype: swap, volume: lvm_partition-1, preserve: false, type: format, id: format-1 }
+      # Remaining capacity size LV for the root partition
+      - { name: ubuntu-lv, volgroup: lvm_volgroup-0, size: -1, wipe: superblock, preserve: false, type: lvm_partition, id: lvm_partition-0 }
+      - { fstype: ext4, volume: lvm_partition-0, preserve: false, type: format, id: format-2 }
+      # Mount points
+      - { path: /, device: format-2, type: mount, id: mount-2 }
+      - { path: '', device: format-1, type: mount, id: mount-1 }
+      - { path: /boot, device: format-0, type: mount, id: mount-0 }
+    swap:
+      swap: 0
+    grub:
+      # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
+      reorder_uefi: False
+  version: 1
+  timezone: Asia/Shanghai
+  late-commands:
+    - cp -rp /cdrom/mnt /target/
+    - chmod +x /target/mnt/script/install-pkgs.sh
+    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+    # copy template file to specify dirctory
+    - curtin in-target --target=/target -- mv /mnt/template.xml /opt
+    # copy local file to ISO
+    - cp -rp /cdrom/mnt/service  /target/opt
+    # to change template file parameters
+    - chmod +x /target/mnt/script/config.sh
+    - curtin in-target --target=/target -- /mnt/script/config.sh
+    # startup kvm images to loading template file
+    - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
+    - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
+    - cp -p /cdrom/rc.local /target/etc/rc.local
+    - chmod +x /target/etc/rc.local
+    - systemctl daemon-reload
+    #rm -rf /target/mnt/service

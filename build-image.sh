@@ -14,7 +14,8 @@ Available options:
        n Build image with installer
        a Build image with installer and local services, esxi only
        ke Build image with installer and local services, only in the esxi for kvm
-       kh Build image with installer and local services, only in the hardware for kvm
+       khs Build image with installer and local services, only in the hardware for kvm, block device is standard.
+       khn Build image with installer and local services, only in the hardware for kvm, block device is nvme.
        q Exit script
 EOF
 }
@@ -27,22 +28,26 @@ case $value in
     exit
     ;;
     s)
-    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u example/user-data-simple.yml -n focal -d ubuntu-autoinstall-simple.iso
+    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u example/user-data-simple.yml -n jammy -d ubuntu22-autoinstall-simple.iso
     ;;
     n)
-    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u example/user-data-kvm-esxi.yml -n focal -p package-name.txt  -d ubuntu-autoinstall-pkgs.iso
+    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u example/user-data-kvm-esxi.yml -n jammy -p package-name.txt  -d ubuntu-autoinstall-pkgs.iso
     ;;
     a)
-    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u  example/user-data-local-service.yml -n focal -p package-name.txt -c example/config-all.sh  \
+    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u  example/user-data-local-service.yml -n jammy -p package-name.txt -c example/config-all.sh  \
               -j rc.local -s /root/service -d ubuntu-autoinstall-local-service.iso
     ;;
     ke)
-    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u example/user-data-kvm-esxi.yml -n focal -p package-name.txt -c example/config-kvm.sh \
+    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u example/user-data-kvm-esxi.yml -n jammy -p package-name.txt -c example/config-kvm.sh \
           -j rc-kvm.local -t template/silver-peak-template.xml  -s /root/service -d ubuntu-autoinstall-silver-peak.iso -k 0
     ;;
-    kh)
-    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u example/user-data-kvm-hardware.yml -n focal -p package-name.txt -c example/config-kvm.sh \
-            -j rc-kvm.local -t template/silver-peak-template.xml  -s /root/service -d ubuntu-autoinstall-silver-peak.iso -k 0
+    khs)
+    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u example/user-data-kvm-standard-hardware.yml -n jammy -p package-name.txt -c example/config-kvm.sh \
+            -j rc-kvm.local -t template/silver-peak-template.xml  -s /root/service -d ubuntu22-silverpeak-standard.iso -k 0
+      ;;
+    khn)
+    bash -x  ubuntu-autoinstall-generator-tools.sh  -a  -u example/user-data-kvm-nvme-hardware.yml -n jammy -p package-name.txt -c example/config-kvm.sh \
+            -j rc-kvm.local -t template/silver-peak-template.xml  -s /root/service -d ubuntu22-silverpeak-nvme.iso -k 0
       ;;
     q)
     exit

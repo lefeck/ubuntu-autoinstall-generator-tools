@@ -343,19 +343,12 @@ if [ ${all_in_one} -eq 1 ]; then
                   read_file=$(cat $tmpdir/$package_name)
                   [ -d "${pkgs_destination_dir}" ] || mkdir -p "${pkgs_destination_dir}"
                   for line in $read_file; do
-                          log "🌎 Downloading and saving packages ${line}"
-                          apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks \
-                          --no-replaces --no-enhances --no-pre-depends ${line} | grep -v i386 | grep "^\w") &>/dev/null
-                          if [ $? -eq 0 ];then
-                              log "👍 Downloaded the ${line} packages to ${script_dir}"
-                          else
-                              alais_name=$(aptitude show ${line} | grep "Provided by" | awk -F ' ' '{print $3}')
-                              package_name_string=$(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks \
-                                                                    --no-replaces --no-enhances --no-pre-depends ${alais_name})
-                              log "👍 Downloaded the ${alais_name} packages to ${script_dir}"
-                          fi
-                          mv ${script_dir}/*.deb ${pkgs_destination_dir}
-                          log "👍 Downloaded and saved the all of packages to ${pkgs_destination_dir}/${line}"
+                            log "🌎 Downloading and saving packages ${line}"
+                            apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks \
+                             --no-replaces --no-enhances --no-pre-depends ${line} | grep -v i386 | grep "^\w") &>/dev/null || apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks \
+                             --no-replaces --no-enhances --no-pre-depends $(aptitude show ${line} | grep "Provided by" | awk -F ' ' '{print $3}') | grep -v i386 | grep "^\w") &>/dev/null
+                             mv ${script_dir}/*.deb ${pkgs_destination_dir}
+                             log "👍 Downloaded and saved the all of packages to ${pkgs_destination_dir}/${line}"
                   done
                   # create the index file of the local software sources
                   cd ${pkgs_destination_dir}
@@ -367,7 +360,7 @@ if [ ${all_in_one} -eq 1 ]; then
                   echo '#!/bin/bash' > ${script_file}
                   echo "# The default installation package will be downloaded to /cdrom/mnt/packages/ directory" >> ${script_file}
                   echo "cp /etc/apt/sources.list /etc/apt/sources.list.bak" >> ${script_file}
-                  echo 'echo 'deb [trusted=yes] file:///mnt/packages/   ./' > /etc/apt/sources.list' >> ${script_file}
+                  echo 'echo 'deb [trusted=yes] file:///mnt/packages/  ./' > /etc/apt/sources.list' >> ${script_file}
                   echo 'apt-get update' >> ${script_file}
                   for name in $read_file; do
                           echo "apt-get install -y ${name}" >> ${script_file}

@@ -29,18 +29,88 @@ autoinstall:
     variant: ''
   locale: en_US.UTF-8
   network:
-    ethernets:
-      # Note: This NIC name ens136 is my custom name, during installation, if you specify the config-network.sh script, it will
-      # be automatically changed to the first NIC name of the machine itself
-      ens136:
-        addresses:
-        - 192.168.1.1/24
-        gateway4: 192.168.1.254
-        nameservers:
-          addresses:
-          - 114.114.114.114
-          search: []
     version: 2
+    renderer: networkd
+    ethernets:
+      eth0:
+        dhcp4: false
+      eth1:
+        dhcp4: false
+      eth2:
+        dhcp4: false
+      eth3:
+        dhcp4: false
+      eth4:
+        dhcp4: false
+      eth5:
+        dhcp4: false
+      eth6:
+        dhcp4: false
+      eth7:
+        dhcp4: false
+      eth8:
+        dhcp4: false
+      eth9:
+        dhcp4: false
+    bridges:
+      br0:
+        interfaces: [ eth0 ]
+        addresses: [ 192.168.1.1/24 ]
+        routes:
+          - to: default
+            via: 192.168.1.254
+            metric: 100
+            on-link: true
+        nameservers:
+          addresses: [ 114.114.114.114 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br1:
+        interfaces: [ eth1 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br2:
+        interfaces: [ eth2 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br3:
+        interfaces: [ eth3 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br4:
+        interfaces: [ eth4 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br5:
+        interfaces: [ eth5 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br6:
+        interfaces: [ eth6 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br7:
+        interfaces: [ eth7 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br8:
+        interfaces: [ eth8 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br9:
+        interfaces: [ eth9 ]
+        parameters:
+          stp: true
+          forward-delay: 4
   ssh:
     allow-pw: true
     authorized-keys: []
