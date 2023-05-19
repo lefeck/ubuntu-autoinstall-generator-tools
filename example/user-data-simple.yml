@@ -34,8 +34,8 @@ autoinstall:
       # be automatically changed to the first NIC name of the machine itself
       ens136:
         addresses:
-          - 192.168.6.100/24
-        gateway4: 192.168.6.1
+          - 192.168.10.100/24
+        gateway4: 192.168.10.1
         nameservers:
           addresses:
             - 114.114.114.114
@@ -72,4 +72,7 @@ autoinstall:
       # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
       reorder_uefi: False
   version: 1
-  timezone: Asia/Shanghai
+  user-data:
+    timezone: Asia/Shanghai
+    # enable root account
+    disable_root: false

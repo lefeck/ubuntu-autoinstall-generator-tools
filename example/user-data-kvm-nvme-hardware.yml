@@ -6,18 +6,17 @@ autoinstall:
     geoip: true
     preserve_sources_list: false
     primary:
-    - arches:
-      - amd64
-      - i386
-      uri: https://mirrors.tuna.tsinghua.edu.cn/ubuntu
-    - arches:
-      - default
-      uri: http://ports.ubuntu.com/ubuntu-ports
+      - arches:
+          - amd64
+          - i386
+        uri: https://mirrors.tuna.tsinghua.edu.cn/ubuntu
+      - arches:
+          - default
+        uri: http://ports.ubuntu.com/ubuntu-ports
   drivers:
     install: false
   identity:
     hostname: msa
-    # default password: 1qaz@WSX
     password: $6$x666Mgrn9NRnY5bs$rQogVX3FO3JVFc7wzy4krvMUGiCP6/spTI/b/eVc5kr78AlA2LLf5dtm2yfljjzgUBX4.0Zd97PXHayWz4pFQ/
     realname: msa
     username: msa
@@ -117,38 +116,96 @@ autoinstall:
     install-server: true
   storage:
     config:
-      # Partition table
-      - { ptable: gpt, path: /dev/nvme0n1, wipe: superblock-recursive, preserve: false, name: '', grub_device: true,type: disk, id: disk-sda }
-      - { device: disk-sda, size: 1048576, flag: bios_grub, number: 1, preserve: false, grub_device: false, offset: 1048576, type: partition, id: partition-0 }
-      # Linux boot partition size 2G
-      - { device: disk-sda, size: 2147483648, wipe: superblock, number: 2, preserve: false, grub_device: false, offset: 2097152, type: partition, id: partition-1 }
-      - { fstype: ext4, volume: partition-1, preserve: false, type: format, id: format-0 }
-      # Partition for LVM, VG
-      - { device: disk-sda, size: -1, wipe: superblock, number: 3, preserve: false, grub_device: false, offset: 2149580800, type: partition, id: partition-2 }
-      - { name: ubuntu-vg, devices: [ partition-2 ], preserve: false, type: lvm_volgroup, id: lvm_volgroup-0 }
-      # Swap size 1G
-      - { name: swap, volgroup: lvm_volgroup-0, size: 1073741824B, wipe: superblock, preserve: false, type: lvm_partition, id: lvm_partition-1 }
-      - { fstype: swap, volume: lvm_partition-1, preserve: false, type: format, id: format-1 }
-      # Remaining capacity size LV for the root partition
-      - { name: ubuntu-lv, volgroup: lvm_volgroup-0, size: -1, wipe: superblock, preserve: false, type: lvm_partition, id: lvm_partition-0 }
-      - { fstype: ext4, volume: lvm_partition-0, preserve: false, type: format, id: format-2 }
-      # Mount points
-      - { path: /, device: format-2, type: mount, id: mount-2 }
-      - { path: '', device: format-1, type: mount, id: mount-1 }
-      - { path: /boot, device: format-0, type: mount, id: mount-0 }
+      - ptable: gpt
+        path: /dev/nvme0n1
+        wipe: superblock-recursive
+        preserve: false
+        name: ''
+        grub_device: false
+        type: disk
+        id: disk-nvme0n1
+      - device: disk-nvme0n1
+        size: 1127219200
+        wipe: superblock
+        flag: boot
+        number: 1
+        preserve: false
+        grub_device: true
+        offset: 1048576
+        type: partition
+        id: partition-0
+      - fstype: fat32
+        volume: partition-0
+        preserve: false
+        type: format
+        id: format-0
+      - device: disk-nvme0n1
+        size: 2147483648
+        wipe: superblock
+        number: 2
+        preserve: false
+        grub_device: false
+        offset: 1128267776
+        type: partition
+        id: partition-1
+      - fstype: ext4
+        volume: partition-1
+        preserve: false
+        type: format
+        id: format-1
+      - device: disk-nvme0n1
+        size: -1
+        wipe: superblock
+        number: 3
+        preserve: false
+        grub_device: false
+        offset: 3275751424
+        type: partition
+        id: partition-2
+      - name: ubuntu-vg
+        devices:
+          - partition-2
+        preserve: false
+        type: lvm_volgroup
+        id: lvm_volgroup-0
+      - name: ubuntu-lv
+        volgroup: lvm_volgroup-0
+        size: -1
+        wipe: superblock
+        preserve: false
+        type: lvm_partition
+        id: lvm_partition-0
+      - fstype: ext4
+        volume: lvm_partition-0
+        preserve: false
+        type: format
+        id: format-3
+      - path: /
+        device: format-3
+        type: mount
+        id: mount-3
+      - path: /boot
+        device: format-1
+        type: mount
+        id: mount-1
+      - path: /boot/efi
+        device: format-0
+        type: mount
+        id: mount-0
     swap:
       swap: 0
     grub:
       # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
       reorder_uefi: False
-  version: 1
-  timezone: Asia/Shanghai
   late-commands:
     - cp -rp /cdrom/mnt /target/
-    - chmod +x /target/mnt/script/install-pkgs.sh
-    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
     # copy template file to specify dirctory
     - curtin in-target --target=/target -- mv /mnt/template.xml /opt
+    # disable cloud-init in Ubuntu
+    - curtin in-target --target=/target -- touch /etc/cloud/cloud-init.disabled
+    # loading install packages for ubuntu system
+    - chmod +x /target/mnt/script/install-pkgs.sh
+    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
     # copy local file to ISO
     - cp -rp /cdrom/mnt/service  /target/opt
     # to change template file parameters
@@ -160,4 +217,8 @@ autoinstall:
     - cp -p /cdrom/rc.local /target/etc/rc.local
     - chmod +x /target/etc/rc.local
     - systemctl daemon-reload
-    #rm -rf /target/mnt/service
+  user-data:
+    timezone: Asia/Shanghai
+    # enable root account
+    disable_root: false
+  version: 1

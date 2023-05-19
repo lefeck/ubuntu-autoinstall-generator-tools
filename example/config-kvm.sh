@@ -20,16 +20,11 @@ EOF
 # Enable serial console on Ubuntu
 # GRUB_SERIAL_COMMAND="serial --speed=9600" or GRUB_SERIAL_COMMAND="serial --speed=9600 --unit=0 --word=8 --parity=no --stop=1"
 sed -i 's/^#\?GRUB_TERMINAL=.*/GRUB_TERMINAL=serial/g' /etc/default/grub
-#sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"/g' /etc/default/grub
 sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=""/g' /etc/default/grub
 sed -i 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,9600"/g' /etc/default/grub
 grep "GRUB_SERIAL_COMMAND" /etc/default/grub > /dev/null 2>&1 || sed -i '/GRUB_CMDLINE_LINUX=.*/a\GRUB_SERIAL_COMMAND="serial --speed=9600"' /etc/default/grub
 #update grup
 update-grub
-
-sed -i 's/^#\?DefaultTimeoutStopSec=.*/DefaultTimeoutStopSec=3s/g' /etc/systemd/system.conf
-sed -i 's/^#\?DefaultTimeoutStartSec=.*/DefaultTimeoutStartSec=3s/g' /etc/systemd/system.conf
-systemctl daemon-reload
 
 # get all nic name for operation system, configure the one of Nic name
 nic_names=$(ls /sys/class/net/ | grep -v "`ls /sys/devices/virtual/net/`")
@@ -63,7 +58,6 @@ free_size=$((${mem_total}-638812))
 sed -i "s/free_mem/${free_size}/g" ${template_file}
 
 # add network interface card for template file
-#nic_list=$(cat /proc/net/dev | awk '{i++; if(i>2){print $1}}' | sed 's/^[\t]*//g' | sed 's/[:]*$//g' | grep -v "lo" | sort -n | grep -v "macvtap")
 # get all of the physical nic names
 for ((i=0;i<${#new_nic_names[*]};i++));do
 #  sed -i "s/eth${i}/${new_nic_names[${i}]}/g" /etc/netplan/00-installer-config.yaml

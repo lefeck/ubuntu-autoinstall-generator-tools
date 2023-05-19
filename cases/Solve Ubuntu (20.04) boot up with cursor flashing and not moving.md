@@ -20,8 +20,12 @@ Switching on and off to wait for a long time, may be the background to open or c
 we should be change system.conf file and reload configuration
 ```shell
 # change system.conf file to reduce the time spent switching on and off
-sed -i 's/^#\?DefaultTimeoutStopSec=.*/DefaultTimeoutStopSec=3s/g' /etc/systemd/system.conf
-sed -i 's/^#\?DefaultTimeoutStartSec=.*/DefaultTimeoutStartSec=3s/g' /etc/systemd/system.conf
+sed -i 's/^#\?DefaultTimeoutStopSec=.*/DefaultTimeoutStopSec=30s/g' /etc/systemd/system.conf
+sed -i 's/^#\?DefaultTimeoutStartSec=.*/DefaultTimeoutStartSec=30s/g' /etc/systemd/system.conf
 # reload configuration
-systemctl daemon-reload
+systemctl daemon-reload 
+```
+* note: DefaultTimeoutStopSec and DefaultTimeoutStartSec must be set to a reasonable value to ensure that the operating system's default process is up，otherwise, the following error will be reported.
+```shell
+[Aug 2 04:18] audit: type=1400 audit(1659413905.466:2103): apparmor="STATUS" operation="profile_load" profile="unconfined" name="demo" pid=3068586 comm="apparmor_parser"
 ```

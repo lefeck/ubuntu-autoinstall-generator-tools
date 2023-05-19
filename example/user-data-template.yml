@@ -65,3 +65,7 @@ autoinstall:
   - tpm2_pcrread > /target/late-tpm2_pcrread.txt || true
   - tpm2_eventlog /sys/kernel/security/tpm0/binary_bios_measurements > /target/late-tpm2_eventlog.txt || true
   version: 1
+  user-data:
+    timezone: Asia/Shanghai
+    # enable root account
+    disable_root: false

@@ -73,6 +73,8 @@ while true; do
     fi
 done
 
+#setting time zone
+timedatectl set-timezone Asia/Shanghai
 # exec script file
 source /opt/allmulticast.sh
 log_info  "exec script file /opt/allmulticast.sh"

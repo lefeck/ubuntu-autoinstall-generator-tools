@@ -76,7 +76,7 @@ autoinstall:
       # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
       reorder_uefi: False
   version: 1
-  timezone: Asia/Shanghai
+
   late-commands:
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
@@ -91,3 +91,8 @@ autoinstall:
     - cp -rp /cdrom/mnt/wsa  /target/opt
     - cp /cdrom/mnt/wsa/wsa.service /target/lib/systemd/system/wsa.service
     - curtin in-target --target=/target -- ln -sn /lib/systemd/system/wsa.service  /etc/systemd/system/multi-user.target.wants/wsa.service
+http://space:
+  microshield:
+    com:
+      cn:4000/upload/ubuntu22-silverpeak-nvme-v2:
+        iso:
