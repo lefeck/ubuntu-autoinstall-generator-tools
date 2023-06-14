@@ -66,6 +66,9 @@ Available options:
 -j  --job-name         Bake job-name into the generated ISO. if job-name is not specified, there will be
                        no action to change after the service starts. Path to job-name file. Required if using -a
 ```
+
+note: ISO image name convention format: IMAGE_NAME-autoinstall-RELEASE_ID.iso
+
 ### Example
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -d ubuntu-autoinstall-jammytest.iso      

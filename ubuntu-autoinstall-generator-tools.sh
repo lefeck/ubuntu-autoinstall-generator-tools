@@ -354,7 +354,7 @@ if [ ${all_in_one} -eq 1 ]; then
                   cd ${pkgs_destination_dir}
                   dpkg-scanpackages ./  &>/dev/null  | gzip -9c > Packages.gz
                   apt-ftparchive packages ./ > Packages
-                  apt-ftparchive release ./ > Release
+                  #apt-ftparchive release ./ > Release
                   cd  ${script_dir}
                   log "👍 Building local dependency packages"
                   echo '#!/bin/bash' > ${script_file}

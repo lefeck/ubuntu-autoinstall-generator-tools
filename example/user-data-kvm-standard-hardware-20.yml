@@ -6,13 +6,13 @@ autoinstall:
     geoip: true
     preserve_sources_list: false
     primary:
-    - arches:
-      - amd64
-      - i386
-      uri: https://mirrors.tuna.tsinghua.edu.cn/ubuntu
-    - arches:
-      - default
-      uri: http://ports.ubuntu.com/ubuntu-ports
+      - arches:
+          - amd64
+          - i386
+        uri: https://mirrors.tuna.tsinghua.edu.cn/ubuntu
+      - arches:
+          - default
+        uri: http://ports.ubuntu.com/ubuntu-ports
   drivers:
     install: false
   identity:
@@ -30,10 +30,17 @@ autoinstall:
   locale: en_US.UTF-8
   network:
     version: 2
-    renderer: networkd
     ethernets:
+      # Note: This NIC name ens136 is my custom name, during installation, if you specify the config-network.sh script, it will
+      # be automatically changed to the first NIC name of the machine itself
       eth0:
-        dhcp4: false
+        addresses:
+          - 192.168.1.1/24
+        gateway4: 192.168.1.254
+        nameservers:
+          addresses:
+            - 114.114.114.114
+          search: []
       eth1:
         dhcp4: false
       eth2:
@@ -52,65 +59,6 @@ autoinstall:
         dhcp4: false
       eth9:
         dhcp4: false
-    bridges:
-      br0:
-        interfaces: [ eth0 ]
-        addresses: [ 192.168.1.1/24 ]
-        routes:
-          - to: default
-            via: 192.168.1.254
-            metric: 100
-            on-link: true
-        nameservers:
-          addresses: [ 114.114.114.114 ]
-        parameters:
-          stp: true
-          forward-delay: 4
-      br1:
-        interfaces: [ eth1 ]
-        parameters:
-          stp: true
-          forward-delay: 4
-      br2:
-        interfaces: [ eth2 ]
-        parameters:
-          stp: true
-          forward-delay: 4
-      br3:
-        interfaces: [ eth3 ]
-        parameters:
-          stp: true
-          forward-delay: 4
-      br4:
-        interfaces: [ eth4 ]
-        parameters:
-          stp: true
-          forward-delay: 4
-      br5:
-        interfaces: [ eth5 ]
-        parameters:
-          stp: true
-          forward-delay: 4
-      br6:
-        interfaces: [ eth6 ]
-        parameters:
-          stp: true
-          forward-delay: 4
-      br7:
-        interfaces: [ eth7 ]
-        parameters:
-          stp: true
-          forward-delay: 4
-      br8:
-        interfaces: [ eth8 ]
-        parameters:
-          stp: true
-          forward-delay: 4
-      br9:
-        interfaces: [ eth9 ]
-        parameters:
-          stp: true
-          forward-delay: 4
   ssh:
     allow-pw: true
     authorized-keys: []
@@ -142,14 +90,12 @@ autoinstall:
       # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
       reorder_uefi: False
   version: 1
-  user-data:
-    timezone: Asia/Shanghai
-    # enable root account
-    disable_root: false
+  timezone: Asia/Shanghai
   late-commands:
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+    - curtin in-target --target=/target -- touch /etc/cloud/cloud-init.disabled
     # copy template file to specify dirctory
     - curtin in-target --target=/target -- mv /mnt/template.xml /opt
     # copy local file to ISO
