@@ -35,7 +35,9 @@ autoinstall:
       ens136:
         addresses:
           - 192.168.10.100/24
-        gateway4: 192.168.10.1
+        routes:
+          - to: default
+            via: 192.168.10.1
         nameservers:
           addresses:
             - 114.114.114.114

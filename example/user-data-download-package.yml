@@ -1,4 +1,4 @@
-#cloud-config
+#cloud-config, only for ubuntu 22.04.3
 autoinstall:
   apt:
     disable_components: []
@@ -30,16 +30,17 @@ autoinstall:
   locale: en_US.UTF-8
   network:
     ethernets:
-      # Note: This NIC name ens136 is my custom name, during installation, if you specify the config-network.sh script, it will
-      # be automatically changed to the first NIC name of the machine itself
-      ens136:
+      ens160:
         addresses:
-          - 192.168.6.100/24
-        gateway4: 192.168.6.1
+          - 192.168.10.103/24
         nameservers:
           addresses:
             - 114.114.114.114
+            - 8.8.8.8
           search: []
+        routes:
+          - to: default
+            via: 192.168.10.1
     version: 2
   ssh:
     allow-pw: true

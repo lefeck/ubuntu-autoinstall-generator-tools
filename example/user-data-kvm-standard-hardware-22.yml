@@ -6,21 +6,21 @@ autoinstall:
     geoip: true
     preserve_sources_list: false
     primary:
-      - arches:
-          - amd64
-          - i386
-        uri: http://archive.ubuntu.com/ubuntu
-      - arches:
-          - default
-        uri: http://ports.ubuntu.com/ubuntu-ports
+    - arches:
+      - amd64
+      - i386
+      uri: https://mirrors.tuna.tsinghua.edu.cn/ubuntu
+    - arches:
+      - default
+      uri: http://ports.ubuntu.com/ubuntu-ports
   drivers:
     install: false
   identity:
-    hostname: ubuntu
-    # default password: 12345
-    password: $6$FnHPy.4giHfDcI8r$vllY94AceZFt20M6WzxXKfOLuycO7o8QD8RJJwVs/DSGcHNNF4ilbGrukXPMA3irAdiimHo0fl2zUdkbRO9vh1
-    realname: ubuntu
-    username: ubuntu
+    hostname: msa
+    # default password: 1qaz@WSX
+    password: $6$x666Mgrn9NRnY5bs$rQogVX3FO3JVFc7wzy4krvMUGiCP6/spTI/b/eVc5kr78AlA2LLf5dtm2yfljjzgUBX4.0Zd97PXHayWz4pFQ/
+    realname: msa
+    username: msa
   kernel:
     package: linux-generic
   keyboard:
@@ -29,20 +29,88 @@ autoinstall:
     variant: ''
   locale: en_US.UTF-8
   network:
+    version: 2
+    renderer: networkd
     ethernets:
-      # Note: This NIC name ens136 is my custom name, during installation, if you specify the config-network.sh script, it will
-      # be automatically changed to the first NIC name of the machine itself
-      ens136:
-        addresses:
-          - 192.168.6.100/24
+      eth0:
+        dhcp4: false
+      eth1:
+        dhcp4: false
+      eth2:
+        dhcp4: false
+      eth3:
+        dhcp4: false
+      eth4:
+        dhcp4: false
+      eth5:
+        dhcp4: false
+      eth6:
+        dhcp4: false
+      eth7:
+        dhcp4: false
+      eth8:
+        dhcp4: false
+      eth9:
+        dhcp4: false
+    bridges:
+      br0:
+        interfaces: [ eth0 ]
+        addresses: [ 192.168.1.1/24 ]
         routes:
           - to: default
-            via: 192.168.6.1
+            via: 192.168.1.254
+            metric: 100
+            on-link: true
         nameservers:
-          addresses:
-            - 114.114.114.114
-          search: []
-    version: 2
+          addresses: [ 114.114.114.114 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br1:
+        interfaces: [ eth1 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br2:
+        interfaces: [ eth2 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br3:
+        interfaces: [ eth3 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br4:
+        interfaces: [ eth4 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br5:
+        interfaces: [ eth5 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br6:
+        interfaces: [ eth6 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br7:
+        interfaces: [ eth7 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br8:
+        interfaces: [ eth8 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br9:
+        interfaces: [ eth9 ]
+        parameters:
+          stp: true
+          forward-delay: 4
   ssh:
     allow-pw: true
     authorized-keys: []
@@ -73,6 +141,7 @@ autoinstall:
     grub:
       # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
       reorder_uefi: False
+  version: 1
   user-data:
     timezone: Asia/Shanghai
     # enable root account
@@ -81,10 +150,18 @@ autoinstall:
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
+    - curtin in-target --target=/target -- touch /etc/cloud/cloud-init.disabled
+    # copy template file to specify dirctory
+    - curtin in-target --target=/target -- mv /mnt/template.xml /opt
+    # copy local file to ISO
+    - cp -rp /cdrom/mnt/service  /target/opt
+    # to change template file parameters
     - chmod +x /target/mnt/script/config.sh
     - curtin in-target --target=/target -- /mnt/script/config.sh
+    # startup kvm images to loading template file
     - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
     - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
     - cp -p /cdrom/rc.local /target/etc/rc.local
     - chmod +x /target/etc/rc.local
     - systemctl daemon-reload
+    #rm -rf /target/mnt/service

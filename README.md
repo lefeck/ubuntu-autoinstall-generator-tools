@@ -16,20 +16,29 @@ p7zip-full
 dpkg-dev
  ```
 
-### Note: 
+Note: When building autoinstall, make sure that your home machine is the same version as the ISO image you are building.
+
+### user-data define
+
+Before building the image ISO, I strongly recommend that you do the following to avoid having to build the image more times.
+
+1. Before defining the user-data file, you need to know what parameters are supported in the user-data file. ubuntu provides [user-data-autoinstall-reference](https://ubuntu.com/server/docs/install/autoinstall-reference), I have also listed a more concise configuration template [user-data-autoinstall](./example/user-data-autoinstall.md), with detailed descriptions of each configuration parameter
+2. user-data file is a yaml format configuration file, if you are not sure whether the format of the yaml file is correct, you can through the yaml file in the present validation tool to check [yaml-validator](https://codebeautify.org/yaml-validator), to ensure that there is no problem.
+
+### flavor and name mapping
 We all know that each release version number of ubuntu will be mapped to a name, the following table is the correspondence between them。
 
-| Nubmer      | Name    |
-|-------------|---------|
-| 20.04.5     | focal   |
-| 22.04.1     | jammy   |
-| 22.10       | kinetic |
+| Nubmer  | Name    |
+|---------|---------|
+| 20.04.5 | focal   |
+| 22.04.3 | jammy   |
+| 22.10   | kinetic |
 
 
 ## Basic Usage
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -h
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p package-name] [-c config-data-file] [-t temaplate-config-file] [-s service-dir-name] [-j job-name] [-k] [-o] [-r] [-d destination-iso-file]
+Usage: ubuntu-autoinstall-generator-tools.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p package-name] [-c config-data-file] [-t temaplate-config-file] [-s service-dir-name] [-j job-name] [-k] [-o] [-r] [-d destination-iso-file]
 
 💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
 
@@ -66,6 +75,9 @@ Available options:
 -j  --job-name         Bake job-name into the generated ISO. if job-name is not specified, there will be
                        no action to change after the service starts. Path to job-name file. Required if using -a
 ```
+
+note: ISO image name convention format: IMAGE_NAME-autoinstall-RELEASE_ID.iso
+
 ### Example
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -d ubuntu-autoinstall-jammytest.iso      
@@ -98,6 +110,22 @@ Now you can boot your target machine using ubuntu-autoinstall-jammy.iso and it w
 ## Advanced Usage
 
 ### Only download the installation package
+
+There are two ways to download the installer. 
+
+1. when building the image, do not need to build the installation package into the build image, in the process of installing the image to rely on the Internet to download the installation package, in order to complete the auto-installation
+
+You need to add the name of the package you want to download in the packeage section of the user-data configuration file. for example:
+```yaml
+  packages:
+      - bash-completion
+      - wget
+      - net-tools
+```
+Note: You need to make sure that the network section is reachable, if you are not sure whether the network configuration is reachable or not, you can configure network dhcp to automatically assign an address.
+
+
+2. when building the image, embed the required installation package into the build image, do not need to rely on the Internet in the process of installing the image to complete the automatic installation directly
 
 When you just download the installation package from the Internet, you do not have to modify the configuration file of the installation package, just specify -p
 ###  Example
@@ -518,4 +546,4 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 
 ## Thanks
 
-The tool was created with reference to a large number of articles, including: [ubuntu-jammy-netinstall-pxe](https://www.molnar-peter.hu/en/ubuntu-jammy-netinstall-pxe.html),[ubuntu-autoinstall-generator](https://github.com/covertsh/ubuntu-autoinstall-generator), [ubuntu-desktop-22.04-autoinstall](https://github.com/michaeltandy/ubuntu-desktop-22.04-autoinstall),[ubuntu 22.04 autoinstall](https://www.pugetsystems.com/labs/hpc/ubuntu-22-04-server-autoinstall-iso/#:~:text=The%20Ubuntu%2022.04%20server%20ISO%20layout%20differs%20from,partitions%20for%20you%21%207z%20-y%20x%20jammy-live-server-amd64.iso%20-osource-files), The script [ubuntu-autoinstall-generator](https://github.com/covertsh/ubuntu-autoinstall-generator) is based on the version control, and some parameters optimization, thanks to the developer's open source contribution.
+The tool was created with reference to a large number of articles, including: [ubuntu-jammy-netinstall-pxe](https://www.molnar-peter.hu/en/ubuntu-jammy-netinstall-pxe.html),[ubuntu-autoinstall-generator](https://github.com/covertsh/ubuntu-autoinstall-generator), [ubuntu-desktop-22.04-autoinstall](https://github.com/michaeltandy/ubuntu-desktop-22.04-autoinstall),[ubuntu 22.04 autoinstall](https://www.pugetsystems.com/labs/hpc/ubuntu-22-04-server-autoinstall-iso/#:~:text=The%20Ubuntu%2022.04%20server%20ISO%20layout%20differs%20from,partitions%20for%20you%21%207z%20-y%20x%20jammy-live-server-amd64.iso%20-osource-files),[curtin.readthedocs.io](https://curtin.readthedocs.io/en/latest/topics/config.html), The script [ubuntu-autoinstall-generator](https://github.com/covertsh/ubuntu-autoinstall-generator) is based on the version control, and some parameters optimization, thanks to the developer's open source contribution.

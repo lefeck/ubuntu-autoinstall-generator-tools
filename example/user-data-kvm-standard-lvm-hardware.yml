@@ -29,57 +29,110 @@ autoinstall:
     variant: ''
   locale: en_US.UTF-8
   network:
+    version: 2
+    renderer: networkd
     ethernets:
-      # Note: This NIC name ens136 is my custom name, during installation, if you specify the config-network.sh script, it will
-      # be automatically changed to the first NIC name of the machine itself
-      ens136:
-        addresses:
-        - 192.168.10.104/24
+      eth0:
+        dhcp4: false
+      eth1:
+        dhcp4: false
+      eth2:
+        dhcp4: false
+      eth3:
+        dhcp4: false
+      eth4:
+        dhcp4: false
+      eth5:
+        dhcp4: false
+      eth6:
+        dhcp4: false
+      eth7:
+        dhcp4: false
+      eth8:
+        dhcp4: false
+      eth9:
+        dhcp4: false
+    bridges:
+      br0:
+        interfaces: [ eth0 ]
+        addresses: [ 192.168.1.1/24 ]
         routes:
           - to: default
-            via: 192.168.10.1
+            via: 192.168.1.254
+            metric: 100
+            on-link: true
         nameservers:
-          addresses:
-          - 114.114.114.114
-          search: []
-    version: 2
+          addresses: [ 114.114.114.114 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br1:
+        interfaces: [ eth1 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br2:
+        interfaces: [ eth2 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br3:
+        interfaces: [ eth3 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br4:
+        interfaces: [ eth4 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br5:
+        interfaces: [ eth5 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br6:
+        interfaces: [ eth6 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br7:
+        interfaces: [ eth7 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br8:
+        interfaces: [ eth8 ]
+        parameters:
+          stp: true
+          forward-delay: 4
+      br9:
+        interfaces: [ eth9 ]
+        parameters:
+          stp: true
+          forward-delay: 4
   ssh:
     allow-pw: true
     authorized-keys: []
     install-server: true
   storage:
     config:
-      # Partition table
-      - { ptable: gpt, path: /dev/sda, wipe: superblock, preserve: false, name: '', grub_device: false, type: disk, id: disk-sda }
-      # EFI boot partition
-      - { device: disk-sda, size: 536870912, wipe: superblock, flag: boot, number: 1, preserve: false, grub_device: true, type: partition, id: partition-0 }
-      - { fstype: fat32, volume: partition-0, preserve: false, type: format, id: format-0 }
-      # Linux boot partition
-      - { device: disk-sda, size: 1073741824, wipe: superblock, flag: '', number: 2, preserve: false, grub_device: false, type: partition, id: partition-1 }
-      - { fstype: ext4, volume: partition-1, preserve: false, type: format, id: format-1 }
-      # Partition for LVM, VG
-      - { device: disk-sda, size: -1, wipe: superblock, flag: '', number: 3, preserve: false, grub_device: false, type: partition, id: partition-2 }
-      - { name: ubuntu-vg, devices: [ partition-2 ], preserve: false, type: lvm_volgroup, id: lvm_volgroup-0 }
-      # LV for root
-      - { name: ubuntu-lv, volgroup: lvm_volgroup-0, size: -1, wipe: superblock, preserve: false, type: lvm_partition, id: lvm_partition-0 }
-      - { fstype: ext4, volume: lvm_partition-0, preserve: false, type: format, id: format-2 }
-      # Mount points
-      - { path: /, device: format-2, type: mount, id: mount-2 }
-      - { path: /boot, device: format-1, type: mount, id: mount-1 }
-      - { path: /boot/efi, device: format-0, type: mount, id: mount-0 }
-    swap:
-      swap: 1G
+      name: lvm
     grub:
       # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
       reorder_uefi: False
   version: 1
-  timezone: Asia/Shanghai
+  user-data:
+    timezone: Asia/Shanghai
+    # enable root account
+    disable_root: false
   late-commands:
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
     - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
     # copy template file to specify dirctory
     - curtin in-target --target=/target -- mv /mnt/template.xml /opt
+    - curtin in-target --target=/target -- touch /etc/cloud/cloud-init.disabled
     # copy local file to ISO
     - cp -rp /cdrom/mnt/service  /target/opt
     # to change template file parameters

@@ -354,7 +354,7 @@ if [ ${all_in_one} -eq 1 ]; then
                   cd ${pkgs_destination_dir}
                   dpkg-scanpackages ./  &>/dev/null  | gzip -9c > Packages.gz
                   apt-ftparchive packages ./ > Packages
-                  apt-ftparchive release ./ > Release
+                  #apt-ftparchive release ./ > Release
                   cd  ${script_dir}
                   log "👍 Building local dependency packages"
                   echo '#!/bin/bash' > ${script_file}
@@ -378,7 +378,7 @@ if [ ${all_in_one} -eq 1 ]; then
                           chmod +x "$config_data_file"
                           cp -rp  "$config_data_file" "$exec_script_dir/config.sh"
                   else
-                          echo "No $config_data_file config profile available."
+                          echo "👍 No configuration profile available."
                   fi
                   log "🧩 Adding template-config files..."
 
@@ -408,7 +408,7 @@ if [ ${all_in_one} -eq 1 ]; then
                                  ;;
                          esac
                   else
-                          log "No $temaplate_config_file template profile available."
+                          log "👍 No template profile available."
                   fi
                   rm $tmpdir/$package_name
                   log "🚽 Deleted temporary file $tmpdir/$package_name."
