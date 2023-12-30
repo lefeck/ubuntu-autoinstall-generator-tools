@@ -78,7 +78,7 @@ Available options:
 
 note: ISO image name convention format: IMAGE_NAME-autoinstall-RELEASE_ID.iso
 
-### Example
+### Basic Example
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
@@ -113,7 +113,10 @@ Now you can boot your target machine using ubuntu-autoinstall-jammy.iso and it w
 
 There are two ways to download the installer. 
 
-1. when building the image, do not need to build the installation package into the build image, in the process of installing the image to rely on the Internet to download the installation package, in order to complete the auto-installation
+ 1. when building the image, do not need to build the installation package into the build image, in the process of installing the image to rely on the Internet to download the installation package, in order to complete the auto-installation
+ 2. when building the image, embed the required installation package into the build image, do not need to rely on the Internet in the process of installing the image to complete the automatic installation directly
+
+#### The first way
 
 You need to add the name of the package you want to download in the packeage section of the user-data configuration file. for example:
 ```yaml
@@ -124,11 +127,38 @@ You need to add the name of the package you want to download in the packeage sec
 ```
 Note: You need to make sure that the network section is reachable, if you are not sure whether the network configuration is reachable or not, you can configure network dhcp to automatically assign an address.
 
+Finally, Same as using "Basic Example"
+```
+root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -d ubuntu-autoinstall-jammytest.iso      
+[2022-12-14 01:03:12] 👶 Starting up...
+[2022-12-14 01:03:12] 🔎 Checking for current release...
+[2022-12-14 01:03:13] 💿 Current release is 22.04.1
+[2022-12-14 01:03:14] 📁 Created temporary working directory /tmp/tmp.OYliQ5b0VL
+[2022-12-14 01:03:14] 🔎 Checking for required utilities...
+[2022-12-14 01:03:14] 👍 All required utilities are installed.
+[2022-12-14 01:03:14] ☑️ Using existing /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-22.04.1-live-server-amd64.iso file.
+[2022-12-14 01:03:14] ☑️ Using existing SHA256SUMS-22.04.1 & SHA256SUMS-22.04.1.gpg files.
+[2022-12-14 01:03:14] ☑️ Using existing Ubuntu signing key saved in /root/ubuntu20/ubuntu-autoinstall-generator-tools/843938DF228D22F7B3742BC0D94AA3F0EFE21092.keyring
+[2022-12-14 01:03:14] 🔐 Verifying /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-22.04.1-live-server-amd64.iso integrity and authenticity...
+[2022-12-14 01:03:24] 👍 Verification succeeded.
+[2022-12-14 01:03:24] 🔧 Extracting ISO image...
+[2022-12-14 01:03:27] 👍 Extracted to /tmp/tmp.OYliQ5b0VL
+[2022-12-14 01:16:23] 🧩 Adding autoinstall parameter to kernel command line...
+[2022-12-14 01:16:23] 👍 Added parameter to UEFI and BIOS kernel command lines.
+[2022-12-14 01:16:23] 🧩 Adding user-data and meta-data files...
+[2022-12-14 01:16:23] 👍 Added data and configured kernel command line.
+[2022-12-14 01:16:23] 👷 Updating /tmp/tmp.OYliQ5b0VL/md5sum.txt with hashes of modified files...
+[2022-12-14 01:16:23] 👍 Updated hashes.
+[2022-12-14 01:16:23] 📦 Repackaging extracted files into an ISO image...
+[2022-12-14 01:16:38] 👍 Repackaged into /root/ubuntu/ubuntu-autoinstall-generator-tools/ubuntu-autoinstall-jammy.iso
+[2022-12-14 01:16:38] ✅ Completed.
+[2022-12-14 01:16:38] 🚽 Deleted temporary working directory /tmp/tmp.OYliQ5b0VL
+```
 
-2. when building the image, embed the required installation package into the build image, do not need to rely on the Internet in the process of installing the image to complete the automatic installation directly
+#### The second way
 
 When you just download the installation package from the Internet, you do not have to modify the configuration file of the installation package, just specify -p
-###  Example
+#####  Example
 first，you shoule be configure the package-name.txt of the installation packages names, for example:
 ```text
 # Define the name of the package to be downloaded from the Internet
