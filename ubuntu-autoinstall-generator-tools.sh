@@ -416,11 +416,10 @@ if [ ${all_in_one} -eq 1 ]; then
 
         # After application starting up, todo it
         if [ -n "${job_name}" ]; then
-                cp -p ${job_name}  $tmpdir/rc.local
-                cp rc-local.service $tmpdir/rc-local.service
-                log "📁 Moving ${job_name} file to temporary working directory $tmpdir/mnt/script."
+                cp -p ${job_name}  $tmpdir/runcmd-first-boot.sh
+                log "📁 Moving ${job_name} file to temporary working directory $tmpdir."
         fi
-
+        # Provide an interface for users to customize the application
          if [ -n "${service_dir_name}" ]; then
                 [[ ! -d ${service_dir_name} ]] && die "👿 ${service_dir_name} is not a legal directory."
                 variable=${service_dir_name}

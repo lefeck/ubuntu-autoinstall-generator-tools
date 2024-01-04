@@ -1,7 +1,7 @@
 
 #  user-data file 
 
-Only for Ubuntu Server 22.04.3
+Only for Ubuntu Server 22.04
 
 Here's an example template for user-data, detailing the meaning of the parameters.
 
@@ -174,11 +174,10 @@ In the new format, the primary section expects a list of mirrors, which can be e
 default: abort
 
 Controls what subiquity should do if no primary mirror is usable. Supported values are:
-```txt
-abort -> abort the installation
-offline-install -> revert to an offline installation
-continue-anyway -> attempt to install the system anyway (not recommended, the installation will certainly fail)
-```
+
+- abort -> abort the installation
+- offline-install -> revert to an offline installation
+- continue-anyway -> attempt to install the system anyway (not recommended, the installation will certainly fail)
 
 
 ## network section

@@ -1,18 +1,15 @@
 #!/bin/bash
 
-#This script will be executed *after* all the other init scripts.
-#You can put your own initialization stuff in here if you don't
-#want to do the full Sys V style init stuff.
-
-
-file="/etc/rc.local"
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
 
 # the following functions are used for logging purposes and are not recommended to be modified
 # set extraiable value
 DATE=`date "+%Y-%m-%d %H:%M:%S"`
 USER=`whoami`
 HOST_NAME=`hostname`
-LOG_FILE="/var/log/rc-local.log"
+LOG_FILE="/var/log/record-db.log"
 
 # Execution successful log printing path
 function log_info () {
@@ -45,7 +42,7 @@ function fn_log ()  {
 mysql_user="root"
 # default password is null
 mysql_password="123456"
-new_mysql_password="MsTac@2001"
+new_mysql_password="Mspx@2001"
 while true; do
     processNum=`ps aux | grep mysql | grep -v grep | wc -l`;
     # change mysql password
@@ -57,7 +54,6 @@ while true; do
       GRANT ALL ON *.* TO 'root'@'%' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
       GRANT ALL ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
       GRANT ALL ON *.* TO 'root'@'localhost' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
-      source /opt/wsa/opm/sql/wsa_clean.sql;
       FLUSH PRIVILEGES;
       COMMIT;
 EOF
@@ -68,6 +64,4 @@ EOF
       log_info "waiting for 2s"
     fi
 done
-fn_log "Clean files ${file}"
-rm  -f ${file}
 exit 0
