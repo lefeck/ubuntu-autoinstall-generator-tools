@@ -37,10 +37,10 @@ Note: When building autoinstall, make sure that your home machine is the same ve
 Before building the image ISO, I strongly recommend that you do the following to avoid having to build the image more times.
 
 1. Before defining the user-data file, you need to know what parameters are supported in the user-data file. ubuntu provides [user-data-autoinstall-reference](https://ubuntu.com/server/docs/install/autoinstall-reference), I have also listed a more concise configuration template [user-data-autoinstall](./example/user-data-autoinstall.md), with detailed descriptions of each configuration parameter
-2. user-data file is a yaml format configuration file, if you are not sure whether the format of the yaml file is correct, you can through the yaml file in the present validation tool to check [yaml-validator](https://codebeautify.org/yaml-validator), to ensure that there is no problem.
+2. user-data file is a yaml format configuration file, if you are not sure whether the format of the yaml file is correct, you can through the yaml file in the present validation tool [yaml-validator](https://codebeautify.org/yaml-validator) to check, to ensure that there is no problem.
 
 ### flavor and name mapping
-We all know that each release version number of ubuntu will be mapped to a name, the following table is the correspondence between them。
+We all know that each release version number of ubuntu will be mapped to a name, the following table is the correspondence between them.
 
 | Nubmer  | Name    |
 |---------|---------|
@@ -332,7 +332,7 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 ```
 
 
-#### 3. You can modify the configration file by useing the template file
+#### 3. You can modify the configration file by using the template file
 You need to make a copy of the template configuration file beforehand, and modify it to your desired state, and then reference it in the late-command, for example:
 
 Here I am using the database template file is template.conf， Not in the specific display content
