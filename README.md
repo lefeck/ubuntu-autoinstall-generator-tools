@@ -2,6 +2,20 @@
 
 A script to generate a fully-automated ISO image for installing Ubuntu onto a machine without human interaction. This uses the new autoinstall method for Ubuntu and newer.
 
+## Ubuntu autoinstall process
+
+Here are the detailed instructions:
+
+- Verify the user-data file: The installer first verifies the validity of the user-data file. If it fails, the installer jumps to the manual installation interface.
+- Parsing user-data configuration parameters: The installer parses the user-data file for autoinstall configurations, such as APT sources, network configurations, disk partitions, kernel, swap partitions, etc. The installer then parses the user-data file to determine if the user-data file is valid and if it is not, the installer jumps to the manual installation screen.
+- Installing the base system: the installer copies the selected operating system image to the target disk.
+- Install kernel and configure bootloader: The installer installs the kernel on the target system and configures it for the bootloader (e.g. GRUB).
+- Configure cloud-init: The installer adds the cloud-init configuration to the target system to be executed after the instance boots.
+- Install required packages: The installer installs some required packages, such as openssh-server and other custom packages that you specify in user-data.
+- Perform security updates: The installation process should include obtaining all critical security updates and applying them to the target system.
+- Instance Reboot: The installer reboots the instance to start the installed operating system.
+- Boot for the first time: Once the instance is booted, it will load and execute the configuration parameters based on the runmd command in user-data.
+
 ##  Requirements
 
 Tested on a host running Ubuntu System
@@ -16,20 +30,29 @@ p7zip-full
 dpkg-dev
  ```
 
-### Note: 
-We all know that each release version number of ubuntu will be mapped to a name, the following table is the correspondence between them。
+Note: When building autoinstall, make sure that your home machine is the same version as the ISO image you are building.
 
-| Nubmer      | Name    |
-|-------------|---------|
-| 20.04.5     | focal   |
-| 22.04.1     | jammy   |
-| 22.10       | kinetic |
+### user-data define
+
+Before building the image ISO, I strongly recommend that you do the following to avoid having to build the image more times.
+
+1. Before defining the user-data file, you need to know what parameters are supported in the user-data file. ubuntu provides [user-data-autoinstall-reference](https://ubuntu.com/server/docs/install/autoinstall-reference), I have also listed a more concise configuration template [user-data-autoinstall](./example/user-data-autoinstall.md), with detailed descriptions of each configuration parameter
+2. user-data file is a yaml format configuration file, if you are not sure whether the format of the yaml file is correct, you can through the yaml file in the present validation tool [yaml-validator](https://codebeautify.org/yaml-validator) to check, to ensure that there is no problem.
+
+### flavor and name mapping
+We all know that each release version number of ubuntu will be mapped to a name, the following table is the correspondence between them.
+
+| Nubmer  | Name    |
+|---------|---------|
+| 20.04.5 | focal   |
+| 22.04.3 | jammy   |
+| 22.10   | kinetic |
 
 
 ## Basic Usage
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -h
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p package-name] [-c config-data-file] [-t temaplate-config-file] [-s service-dir-name] [-j job-name] [-k] [-o] [-r] [-d destination-iso-file]
+Usage: ubuntu-autoinstall-generator-tools.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p package-name] [-c config-data-file] [-t temaplate-config-file] [-s service-dir-name] [-j job-name] [-k] [-o] [-r] [-d destination-iso-file]
 
 💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
 
@@ -69,7 +92,7 @@ Available options:
 
 note: ISO image name convention format: IMAGE_NAME-autoinstall-RELEASE_ID.iso
 
-### Example
+### Basic Example
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -d ubuntu-autoinstall-jammytest.iso      
 [2022-12-14 01:03:12] 👶 Starting up...
@@ -102,8 +125,54 @@ Now you can boot your target machine using ubuntu-autoinstall-jammy.iso and it w
 
 ### Only download the installation package
 
+There are two ways to download the installer. 
+
+ 1. when building the image, do not need to build the installation package into the build image, in the process of installing the image to rely on the Internet to download the installation package, in order to complete the auto-installation
+ 2. when building the image, embed the required installation package into the build image, do not need to rely on the Internet in the process of installing the image to complete the automatic installation directly
+
+#### The first way
+
+You need to add the name of the package you want to download in the packages section of the user-data configuration file. for example:
+```yaml
+  packages:
+      - bash-completion
+      - wget
+      - net-tools
+```
+Note: You need to make sure that the network section is reachable, if you are not sure whether the network configuration is reachable or not, you can configure network dhcp to automatically assign an address.
+
+Finally, Same as using "Basic Example"
+```
+root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -d ubuntu-autoinstall-jammytest.iso      
+[2022-12-14 01:03:12] 👶 Starting up...
+[2022-12-14 01:03:12] 🔎 Checking for current release...
+[2022-12-14 01:03:13] 💿 Current release is 22.04.1
+[2022-12-14 01:03:14] 📁 Created temporary working directory /tmp/tmp.OYliQ5b0VL
+[2022-12-14 01:03:14] 🔎 Checking for required utilities...
+[2022-12-14 01:03:14] 👍 All required utilities are installed.
+[2022-12-14 01:03:14] ☑️ Using existing /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-22.04.1-live-server-amd64.iso file.
+[2022-12-14 01:03:14] ☑️ Using existing SHA256SUMS-22.04.1 & SHA256SUMS-22.04.1.gpg files.
+[2022-12-14 01:03:14] ☑️ Using existing Ubuntu signing key saved in /root/ubuntu20/ubuntu-autoinstall-generator-tools/843938DF228D22F7B3742BC0D94AA3F0EFE21092.keyring
+[2022-12-14 01:03:14] 🔐 Verifying /root/ubuntu20/ubuntu-autoinstall-generator-tools/ubuntu-22.04.1-live-server-amd64.iso integrity and authenticity...
+[2022-12-14 01:03:24] 👍 Verification succeeded.
+[2022-12-14 01:03:24] 🔧 Extracting ISO image...
+[2022-12-14 01:03:27] 👍 Extracted to /tmp/tmp.OYliQ5b0VL
+[2022-12-14 01:16:23] 🧩 Adding autoinstall parameter to kernel command line...
+[2022-12-14 01:16:23] 👍 Added parameter to UEFI and BIOS kernel command lines.
+[2022-12-14 01:16:23] 🧩 Adding user-data and meta-data files...
+[2022-12-14 01:16:23] 👍 Added data and configured kernel command line.
+[2022-12-14 01:16:23] 👷 Updating /tmp/tmp.OYliQ5b0VL/md5sum.txt with hashes of modified files...
+[2022-12-14 01:16:23] 👍 Updated hashes.
+[2022-12-14 01:16:23] 📦 Repackaging extracted files into an ISO image...
+[2022-12-14 01:16:38] 👍 Repackaged into /root/ubuntu/ubuntu-autoinstall-generator-tools/ubuntu-autoinstall-jammy.iso
+[2022-12-14 01:16:38] ✅ Completed.
+[2022-12-14 01:16:38] 🚽 Deleted temporary working directory /tmp/tmp.OYliQ5b0VL
+```
+
+#### The second way
+
 When you just download the installation package from the Internet, you do not have to modify the configuration file of the installation package, just specify -p
-###  Example
+#####  Example
 first，you shoule be configure the package-name.txt of the installation packages names, for example:
 ```text
 # Define the name of the package to be downloaded from the Internet
@@ -159,7 +228,7 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 When you specify -p in your script to download the dependencies from the Internet, If you want to change the default values of the configuration file through a template or command before starting the service.
 
 ###  Example
-The following is an example of a mysql config file change operation, Three flexible methods are provided here, choose any one of them.
+The following is an example of a mysql config file change, Three flexible methods are provided here, choose any one of them.
 
 #### 1. You can modify the configuration file by using the linux command, for example:
 
@@ -263,7 +332,7 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 ```
 
 
-#### 3. You can modify the configration file by useing the template file
+#### 3. You can modify the configration file by using the template file
 You need to make a copy of the template configuration file beforehand, and modify it to your desired state, and then reference it in the late-command, for example:
 
 Here I am using the database template file is template.conf， Not in the specific display content
@@ -311,25 +380,24 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 ```
 
 ### Download the installation package, and modify it after the APP Service is started.
-When you specify -p in your script to download the dependencies from the Internet, if you need to make changes after the image is installed and the service status is running, then you need to customize the script parameters in the rc.local file.
 
-###  Example
-The following is an example of a mysql password change operation
+cloud-init provides the runmd parameter to run commands or scripts during the first boot, and you can add your own customized script file with the -j option to make this a one-time task. This is a good approach if you downloaded the installer from the Internet and need to make changes after the image is installed and the service is running after a reboot.
+
+####  Example
+The following is an example of a mysql password change, script file modfiy-db-password.sh.
 ```sh
 #!/bin/bash
 
-#This script will be executed *after* all the other init scripts.
-#You can put your own initialization stuff in here if you don't
-#want to do the full Sys V style init stuff.
-
-file="/etc/rc.local"
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
 
 # the following functions are used for logging purposes and are not recommended to be modified
 # set extraiable value
 DATE=`date "+%Y-%m-%d %H:%M:%S"`
 USER=`whoami`
 HOST_NAME=`hostname`
-LOG_FILE="/var/log/rc-local.log"
+LOG_FILE="/var/log/record-db.log"
 
 # Execution successful log printing path
 function log_info () {
@@ -362,13 +430,14 @@ function fn_log ()  {
 mysql_user="root"
 # default password is null
 mysql_password="123456"
-new_mysql_password="MsTac@2001"
+new_mysql_password="Mspx@2001"
 while true; do
     processNum=`ps aux | grep mysql | grep -v grep | wc -l`;
     # change mysql password
     if [ $processNum -ne 0 ]; then
       log_info "waiting for 2s"
       sleep 2
+      # importing database tables
       sudo mysql -u${mysql_user} -p${mysql_password}  << EOF
       GRANT ALL ON *.* TO 'root'@'%' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
       GRANT ALL ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY "${new_mysql_password}" WITH GRANT OPTION;
@@ -383,29 +452,30 @@ EOF
       log_info "waiting for 2s"
     fi
 done
-rm  -f ${file}
-fn_log "Clean files ${file}"
 exit 0
 ```
-Then you also need to add the following parameter to the late-command configuration field in user-data, for example:
+Then, you also need to add the following parameter to the late-command section and user-data section configuration field in user-data, for example:
 
-Note: that the parameters are fixed and are not allowed to be modified.
 ```yaml
+  # custom installation packges
+  packages:
+    - bash-completion
+    - wget
+    - net-tools
+    - mariadb-server
+  # The following is a fixed model and no modifications are allowed.
   late-commands:
-    - cp -rp /cdrom/mnt /target/
-    - chmod +x /target/mnt/script/install-pkgs.sh
-    - chmod +x /target/mnt/script/config.sh
-    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
-    - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
-    - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
-    - cp -p /cdrom/rc.local /target/etc/rc.local
-    - chmod +x /target/etc/rc.local
-    - systemctl daemon-reload
+    - cp /cdrom/runcmd-first-boot.sh /target/opt/runcmd-first-boot.sh
+    - chmod +x /target/opt/runcmd-first-boot.sh
+  user-data:
+    runcmd:
+      - /opt/runcmd-first-boot.sh
 ```
 
-Finally, you need to specfiy the file name of the one-time task rc.lcoal on the command line, via the -j parameter
+Finally, you need to specfiy the file name of the one-time task modfiy-db-password.sh on the command line, via the -j parameter
+
 ```shell
-root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -p package-name.txt -j rc.local -d ubuntu-autoinstall-jammytest.iso  
+root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -a  -u user-data -n jammy -j modfiy-db-password.sh -d ubuntu-autoinstall-jammytest.iso  
 [2022-12-16 09:46:19] 👶 Starting up...
 [2022-12-16 09:46:19] 🔎 Checking for current release...
 [2022-12-16 09:46:21] 💿 Current release is 22.04.1
@@ -419,14 +489,8 @@ root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoin
 [2022-12-16 09:46:31] 👍 Verification succeeded.
 [2022-12-16 09:46:31] 🔧 Extracting ISO image...
 [2022-12-16 09:46:38] 👍 Extracted to /tmp/tmp.tRYNYKdmxv
-[2022-12-16 09:46:38] 🌎 Downloading and saving packages net-tools
-[2022-12-16 09:46:53] 🌎 Downloading and saving packages keepalived
-[2022-12-16 09:48:03] 🌎 Downloading and saving packages nginx
-[2022-12-16 09:50:13] 🌎 Downloading and saving packages mariadb-server
-[2022-12-16 09:51:19] 🌎 Downloading and saving packages mariadb-client
-[2022-12-16 09:51:21] 🚽 Deleted temporary file /tmp/tmp.tRYNYKdmxv/package-name.txt.
 [2022-12-16 09:51:21] 👍 Downloaded packages and saved to /tmp/tmp.tRYNYKdmxv/mnt/pkgs
-[2022-12-16 09:51:21] 📁 Moving rc.local file to temporary working directory /tmp/tmp.tRYNYKdmxv/mnt/script.
+[2022-12-16 09:51:21] 📁 Moving rc.local file to temporary working directory /tmp/tmp.tRYNYKdmxv.
 [2022-12-16 09:51:21] 🧩 Adding autoinstall parameter to kernel command line...
 [2022-12-16 09:51:21] 👍 Added parameter to UEFI and BIOS kernel command lines.
 [2022-12-16 09:51:21] 🧩 Adding user-data and meta-data files...
@@ -438,6 +502,7 @@ root@john-desktop:~/ubuntu20/ubuntu-autoinstall-generator-tools# ./ubuntu-autoin
 [2022-12-16 09:51:38] ✅ Completed.
 [2022-12-16 09:51:38] 🚽 Deleted temporary working directory /tmp/tmp.OYliQ5b0VL
 ```
+
 
 ### Define your own local installer upload build ISO.
 If you need to build a local application into the ISO image, you need to specify the -s parameter to provide the directory.
@@ -521,4 +586,4 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 
 ## Thanks
 
-The tool was created with reference to a large number of articles, including: [ubuntu-jammy-netinstall-pxe](https://www.molnar-peter.hu/en/ubuntu-jammy-netinstall-pxe.html),[ubuntu-autoinstall-generator](https://github.com/covertsh/ubuntu-autoinstall-generator), [ubuntu-desktop-22.04-autoinstall](https://github.com/michaeltandy/ubuntu-desktop-22.04-autoinstall),[ubuntu 22.04 autoinstall](https://www.pugetsystems.com/labs/hpc/ubuntu-22-04-server-autoinstall-iso/#:~:text=The%20Ubuntu%2022.04%20server%20ISO%20layout%20differs%20from,partitions%20for%20you%21%207z%20-y%20x%20jammy-live-server-amd64.iso%20-osource-files), The script [ubuntu-autoinstall-generator](https://github.com/covertsh/ubuntu-autoinstall-generator) is based on the version control, and some parameters optimization, thanks to the developer's open source contribution.
+The tool was created with reference to a large number of articles, including: [ubuntu-jammy-netinstall-pxe](https://www.molnar-peter.hu/en/ubuntu-jammy-netinstall-pxe.html),[ubuntu-autoinstall-generator](https://github.com/covertsh/ubuntu-autoinstall-generator), [ubuntu-desktop-22.04-autoinstall](https://github.com/michaeltandy/ubuntu-desktop-22.04-autoinstall),[ubuntu 22.04 autoinstall](https://www.pugetsystems.com/labs/hpc/ubuntu-22-04-server-autoinstall-iso/#:~:text=The%20Ubuntu%2022.04%20server%20ISO%20layout%20differs%20from,partitions%20for%20you%21%207z%20-y%20x%20jammy-live-server-amd64.iso%20-osource-files),[curtin.readthedocs.io](https://curtin.readthedocs.io/en/latest/topics/config.html), The script [ubuntu-autoinstall-generator](https://github.com/covertsh/ubuntu-autoinstall-generator) is based on the version control, and some parameters optimization, thanks to the developer's open source contribution.

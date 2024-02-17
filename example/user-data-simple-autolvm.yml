@@ -1,0 +1,65 @@
+#cloud-config
+autoinstall:
+  apt:
+    disable_components: []
+    disable_suites: [security]
+    geoip: true
+    preserve_sources_list: false
+    primary:
+      - arches:
+          - amd64
+          - i386
+        uri: http://archive.ubuntu.com/ubuntu
+      - arches:
+          - default
+        uri: http://ports.ubuntu.com/ubuntu-ports
+  drivers:
+    install: false
+  identity:
+    hostname: ubuntu
+    # default password: 12345
+    password: $6$FnHPy.4giHfDcI8r$vllY94AceZFt20M6WzxXKfOLuycO7o8QD8RJJwVs/DSGcHNNF4ilbGrukXPMA3irAdiimHo0fl2zUdkbRO9vh1
+    realname: ubuntu
+    username: ubuntu
+  kernel:
+    package: linux-generic
+  keyboard:
+    layout: us
+    toggle: null
+    variant: ''
+  locale: en_US.UTF-8
+  network:
+    ethernets:
+      # Note: This NIC name ens136 is my custom name, during installation, if you specify the config-network.sh script, it will
+      # be automatically changed to the first NIC name of the machine itself
+      ens136:
+        addresses:
+          - 192.168.10.102/24
+        routes:
+          - to: default
+            via: 192.168.10.1
+        nameservers:
+          addresses:
+            - 114.114.114.114
+          search: []
+    version: 2
+  ssh:
+    allow-pw: true
+    authorized-keys: []
+    install-server: true
+  storage:
+    layout:
+      name: lvm
+      sizing-policy: all
+    swap:
+      filename: swap.img
+      size: 2GB
+      force: true
+    grub:
+      # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
+      reorder_uefi: False
+  version: 1
+  user-data:
+    timezone: Asia/Shanghai
+    # enable root account
+    disable_root: false

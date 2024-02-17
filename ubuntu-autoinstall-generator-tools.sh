@@ -9,7 +9,7 @@ function cleanup() {
         fi
 }
 
-#trap cleanup SIGINT SIGTERM ERR EXIT
+trap cleanup SIGINT SIGTERM ERR EXIT
 
 bootdir="/tmp/BOOT"
 # Gets the current location of the script
@@ -378,7 +378,7 @@ if [ ${all_in_one} -eq 1 ]; then
                           chmod +x "$config_data_file"
                           cp -rp  "$config_data_file" "$exec_script_dir/config.sh"
                   else
-                          echo "No $config_data_file config profile available."
+                          echo "👍 No configuration profile available."
                   fi
                   log "🧩 Adding template-config files..."
 
@@ -408,7 +408,7 @@ if [ ${all_in_one} -eq 1 ]; then
                                  ;;
                          esac
                   else
-                          log "No $temaplate_config_file template profile available."
+                          log "👍 No template profile available."
                   fi
                   rm $tmpdir/$package_name
                   log "🚽 Deleted temporary file $tmpdir/$package_name."
@@ -416,11 +416,10 @@ if [ ${all_in_one} -eq 1 ]; then
 
         # After application starting up, todo it
         if [ -n "${job_name}" ]; then
-                cp -p ${job_name}  $tmpdir/rc.local
-                cp rc-local.service $tmpdir/rc-local.service
-                log "📁 Moving ${job_name} file to temporary working directory $tmpdir/mnt/script."
+                cp -p ${job_name}  $tmpdir/runcmd-first-boot.sh
+                log "📁 Moving ${job_name} file to temporary working directory $tmpdir."
         fi
-
+        # Provide an interface for users to customize the application
          if [ -n "${service_dir_name}" ]; then
                 [[ ! -d ${service_dir_name} ]] && die "👿 ${service_dir_name} is not a legal directory."
                 variable=${service_dir_name}
