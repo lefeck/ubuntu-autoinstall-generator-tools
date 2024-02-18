@@ -20,7 +20,7 @@ Here are the detailed instructions:
 
 Tested on a host running Ubuntu System
 - Utilities required:
- ```
+ ```text
 xorriso
 sed
 curl
@@ -44,8 +44,8 @@ We all know that each release version number of ubuntu will be mapped to a name,
 
 | Nubmer  | Name    |
 |---------|---------|
-| 20.04.5 | focal   |
-| 22.04.3 | jammy   |
+| 20.04.x | focal   |
+| 22.04.x | jammy   |
 | 22.10   | kinetic |
 
 
@@ -134,6 +134,9 @@ There are two ways to download the installer.
 
 You need to add the name of the package you want to download in the packages section of the user-data configuration file. for example:
 ```yaml
+#cloud-config
+autoinstall:
+  # ...
   packages:
       - bash-completion
       - wget
@@ -186,6 +189,9 @@ Then you also need to add the following parameter to the late-command configurat
 
 Note: that the parameters are fixed and are not allowed to be modified
 ```yaml
+#cloud-config
+autoinstall:
+  # ...
   late-commands:
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
@@ -235,6 +241,9 @@ The following is an example of a mysql config file change, Three flexible method
 You can modify the parameters of the configuration file directly with the linux command in the late-command configuration section of user-dat, for example:
 Note: Except for the sed command line, which can be changed, other commands are not allowed.
 ```yaml
+#cloud-config
+autoinstall:
+  # ...
   late-commands:
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
@@ -276,8 +285,7 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 [2022-12-14 01:16:38] 🚽 Deleted temporary working directory /tmp/tmp.OYliQ5b0VL
 ```
 
-
-#### 2. You can modify the configration file by useing the shell script, use the following methods
+#### 2. You ca`n modify the configration file by useing the shell script, use the following methods
 
 You should custom configure the config.sh script, and then reference it in the late-command, for example:
 ```sh
@@ -291,6 +299,9 @@ sed -i '/^#thread_cache_size/c\thread_cache_size = 16' /etc/mysql/mariadb.conf.d
 ```
 Note: that the parameters are fixed and are not allowed to be modified
 ```yaml
+#cloud-config
+autoinstall:
+  # ...
   late-commands:
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
@@ -339,6 +350,9 @@ Here I am using the database template file is template.conf， Not in the specif
 
 Note: Except for the source and destination configuration files of the template file, which can be changed, nothing else is allowed
 ```yaml
+#cloud-config
+autoinstall:
+  # ...
   late-commands:    
     - cp -rp /cdrom/mnt /target/
     - chmod +x /target/mnt/script/install-pkgs.sh
@@ -457,6 +471,9 @@ exit 0
 Then, you also need to add the following parameter to the late-command section and user-data section configuration field in user-data, for example:
 
 ```yaml
+#cloud-config
+autoinstall:
+  # ...
   # custom installation packges
   packages:
     - bash-completion
@@ -541,6 +558,9 @@ Then you also need to add the following parameter to the late-command configurat
 
 Note: In the late-command, I will copy the service directory to /cdrom/mnt, this path is not allowed to be modified, other can be modified, must be the name of the service, etc.
 ```yaml
+#cloud-config
+autoinstall:
+  # ...
   late-commands:
     - cp -rp /cdrom/mnt/service /target/opt
     - cp /cdrom/mnt/service/app.service /target/lib/systemd/system/app.service

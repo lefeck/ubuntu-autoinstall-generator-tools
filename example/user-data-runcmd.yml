@@ -73,18 +73,18 @@ autoinstall:
     grub:
       # This avoids a loop where we autoinstall, reboot to the autoinstaller USB, then autoinstall again and so on.
       reorder_uefi: False
-  user-data:
-    timezone: Asia/Shanghai
-    # enable root account
-    disable_root: false
+  updates: security
+  shutdown: reboot
+  # A future-proofing config file version field. Currently this must be “1”.
+  version: 1
+  packages:
+    - bash-completion
+    - wget
+    - net-tools
+    - mariadb-server
   late-commands:
-    - cp -rp /cdrom/mnt /target/
-    - chmod +x /target/mnt/script/install-pkgs.sh
-    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh
-    - chmod +x /target/mnt/script/config.sh
-    - curtin in-target --target=/target -- /mnt/script/config.sh
-    - cp /cdrom/rc-local.service /target/lib/systemd/system/rc-local.service
-    - curtin in-target --target=/target -- ln -s /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service
-    - cp -p /cdrom/rc.local /target/etc/rc.local
-    - chmod +x /target/etc/rc.local
-    - systemctl daemon-reload
+    - cp /cdrom/runcmd-first-boot.sh /target/opt/runcmd-first-boot.sh
+    - chmod +x /target/opt/runcmd-first-boot.sh
+  user-data:
+    runcmd:
+      - /opt/runcmd-first-boot.sh

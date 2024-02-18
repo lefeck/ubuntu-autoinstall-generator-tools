@@ -91,8 +91,3 @@ autoinstall:
     - cp -rp /cdrom/mnt/wsa  /target/opt
     - cp /cdrom/mnt/wsa/wsa.service /target/lib/systemd/system/wsa.service
     - curtin in-target --target=/target -- ln -sn /lib/systemd/system/wsa.service  /etc/systemd/system/multi-user.target.wants/wsa.service
-http://space:
-  microshield:
-    com:
-      cn:4000/upload/ubuntu22-silverpeak-nvme-v2:
-        iso:
