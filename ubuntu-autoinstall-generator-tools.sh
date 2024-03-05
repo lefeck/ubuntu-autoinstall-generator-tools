@@ -10,7 +10,7 @@ function cleanup() {
 }
 
 # Capture signals to clear temporary files
-trap cleanup SIGINT SIGTERM ERR EXIT
+#trap cleanup SIGINT SIGTERM ERR EXIT
 
 bootdir="/tmp/BOOT"
 # Gets the current location of the script
@@ -323,11 +323,85 @@ function additional_parameter_to_kernel() {
 	log "👍 Added parameter to UEFI and BIOS kernel command lines."
 }
 
+# late-commands insert to user-data
+function dynamic_injection_section_command() {
+    grep "late-commands:" "${user_data_file}"  &>/dev/null || sed -i '$a\  late-commands:' "${user_data_file}"
+}
+
+# mount cdrom to target
+function dynamic_injection_copy_data_to_target() {
+  dynamic_injection_section_command
+  grep "/cdrom/mnt /target/" "${user_data_file}"  &>/dev/null || sed -i '$a\    - cp -rp /cdrom/mnt /target/'  "${user_data_file}"
+}
+
+# install pkgs
+function dynamic_injection_install_pkgs() {
+  dynamic_injection_copy_data_to_target
+  grep "/mnt/script/install-pkgs.sh" "${user_data_file}" &>/dev/null || sed -i '$a\    - curtin in-target --target=/target -- /mnt/script/install-pkgs.sh'  "${user_data_file}"
+}
+
+# add config file function
+function dynamic_injection_config_file() {
+  dynamic_injection_copy_data_to_target
+  if [ -n "${config_data_file}" ]; then
+      dynamic_injection_install_pkgs
+  fi
+  grep "/mnt/script/config.sh" "${user_data_file}"  &>/dev/null || sed -i '$a\    - curtin in-target --target=/target -- /mnt/script/config.sh'  "${user_data_file}"
+}
+
+# mount runcmd first boot script file
+function  dynamic_injection_first_boot_task() {
+  dynamic_injection_section_command
+  grep "/cdrom/runcmd-first-boot.sh" "${user_data_file}"  &>/dev/null || sed -i '$a\    - cp /cdrom/runcmd-first-boot.sh /target/opt/runcmd-first-boot.sh'  "${user_data_file}"
+  dynamic_injection_user_data_runcmd
+}
+
+# perform runcmd script file
+function dynamic_injection_user_data_runcmd() {
+  grep "user-data:" "${user_data_file}" &>/dev/null || sed -i '$a\  user-data:'  "${user_data_file}"
+  grep "runcmd:" "${user_data_file}"  &>/dev/null || sed -i '$a\    runcmd:'  "${user_data_file}"
+  grep "/opt/runcmd-first-boot.sh" "${user_data_file}"  &>/dev/null || sed -i '$a\      - /opt/runcmd-first-boot.sh'  "${user_data_file}"
+}
+
+# custom application upload
+function dynamic_injection_custom_application() {
+    dynamic_injection_section_command
+    fuzzy_app_name=$(find ${service_dir_name} -type f -iname *.service)
+    exact_app_name=$(echo ${fuzzy_app_name#*/})
+    sed -i "\$a\    - cp -rp /cdrom/mnt/${service_dir_name} /target/opt"  "${user_data_file}"
+    sed -i "\$a\    - cp /cdrom/mnt/${fuzzy_app_name} /target/lib/systemd/system/${exact_app_name}"  "${user_data_file}"
+    sed -i "\$a\    - curtin in-target --target=/target -- ln -sn /lib/systemd/system/${exact_app_name} /etc/systemd/system/multi-user.target.wants/${exact_app_name}"  "${user_data_file}"
+}
+
 # create user-data-esxi.yml and meta-data, then change grub.cfg file
 function all_in_ones() {
 	if [ ${all_in_one} -eq 1 ]; then
+		log "🧩 Dynamic injection attach parameters into user-data files."
+    cp ${user_data_file} ${user_data_file}_${today}
+    # load function in order
+    # load install packages
+    if [ -n "${package_name}" ]; then
+      dynamic_injection_install_pkgs
+    fi
+    # Preprocessing configuration file
+    if [ -n "${config_data_file}" ]; then
+      dynamic_injection_config_file
+    fi
+    # first boot start  handler task
+    if [ -n "${job_name}" ]; then
+      dynamic_injection_first_boot_task
+    fi
+    # local custom application
+    if [ -n "${service_dir_name}" ]; then
+      dynamic_injection_custom_application
+    fi
+
 		log "🧩 Adding user-data and meta-data files..."
-		cp "$user_data_file" "$tmpdir/user-data"
+		cp "${user_data_file}" "$tmpdir/user-data"
+		rm -rf "${user_data_file}"
+		mv ${user_data_file}_${today}  "${user_data_file}"
+
+		# todo something, add dynamic inject parameters to user-data file
 		if [ -n "${meta_data_file}" ]; then
 			cp "$meta_data_file" "$tmpdir/meta-data"
 		else

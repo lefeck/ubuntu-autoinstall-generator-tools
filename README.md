@@ -185,9 +185,7 @@ gcc
 keepalived
 samba samba-common
 ```
-Then you also need to add the following parameter to the late-command configuration field in user-data, for example:
-
-Note: that the parameters are fixed and are not allowed to be modified
+Note: If you use the -p parameter, the following parameters are dynamically injected into the late-commands configure section, without human intervention.
 ```yaml
 #cloud-config
 autoinstall:
@@ -285,7 +283,7 @@ root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinst
 [2022-12-14 01:16:38] 🚽 Deleted temporary working directory /tmp/tmp.OYliQ5b0VL
 ```
 
-#### 2. You ca`n modify the configration file by useing the shell script, use the following methods
+#### 2. You can modify the configration file by useing the shell script, use the following methods (recommend)
 
 You should custom configure the config.sh script, and then reference it in the late-command, for example:
 ```sh
@@ -297,7 +295,8 @@ sed -i '/^#max_allowed_packet/c\max_allowed_packet = 1G' /etc/mysql/mariadb.conf
 sed -i '/^#thread_stack/c\thread_stack = 512K' /etc/mysql/mariadb.conf.d/50-server.cnf
 sed -i '/^#thread_cache_size/c\thread_cache_size = 16' /etc/mysql/mariadb.conf.d/50-server.cnf
 ```
-Note: that the parameters are fixed and are not allowed to be modified
+Note: If you use the -c parameter, the following parameters are dynamically injected into the late-commands configure section, without human intervention.
+
 ```yaml
 #cloud-config
 autoinstall:
@@ -468,7 +467,8 @@ EOF
 done
 exit 0
 ```
-Then, you also need to add the following parameter to the late-command section and user-data section configuration field in user-data, for example:
+
+Note: If you use the -j parameter, the following parameters are dynamically injected into the late-commands and user-data configuration section, without human intervention. exclude packages configuration section.
 
 ```yaml
 #cloud-config
@@ -480,7 +480,7 @@ autoinstall:
     - wget
     - net-tools
     - mariadb-server
-  # The following is a fixed model and no modifications are allowed.
+  #  dynamically injected into user-data file
   late-commands:
     - cp /cdrom/runcmd-first-boot.sh /target/opt/runcmd-first-boot.sh
     - chmod +x /target/opt/runcmd-first-boot.sh
@@ -556,7 +556,7 @@ WantedBy=multi-user.target
 ```
 Then you also need to add the following parameter to the late-command configuration field in user-data, for example:
 
-Note: In the late-command, I will copy the service directory to /cdrom/mnt, this path is not allowed to be modified, other can be modified, must be the name of the service, etc.
+Note: If you use the -s parameter, the following parameters are dynamically injected into the late-commands configuration section, without human intervention.
 ```yaml
 #cloud-config
 autoinstall:
