@@ -1,4 +1,4 @@
-# Ubuntu Release Version 20 To 22  Server Autoinstall
+# Ubuntu Release Version 20 to 24  Server Autoinstall
 
 A script to generate a fully-automated ISO image for installing Ubuntu onto a machine without human interaction. This uses the new autoinstall method for Ubuntu and newer.
 
@@ -40,21 +40,20 @@ Before building the image ISO, I strongly recommend that you do the following to
 2. user-data file is a yaml format configuration file, if you are not sure whether the format of the yaml file is correct, you can through the yaml file in the present validation tool [yaml-validator](https://codebeautify.org/yaml-validator) to check, to ensure that there is no problem.
 
 ### flavor and name mapping
-We all know that each release version number of ubuntu will be mapped to a name, the following table is the correspondence between them.
+We all know that each release version number of ubuntu will be mapped to a name, as follows.
 
 | Nubmer  | Name    |
 |---------|---------|
 | 20.04.x | focal   |
 | 22.04.x | jammy   |
-| 22.10   | kinetic |
-
+| 24.04   | noble   |
 
 ## Basic Usage
 ```
 root@john-desktop:~/ubuntu/ubuntu-autoinstall-generator-tools# ./ubuntu-autoinstall-generator-tools.sh -h
 Usage: ubuntu-autoinstall-generator-tools.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p package-name] [-c config-data-file] [-t temaplate-config-file] [-s service-dir-name] [-j job-name] [-k] [-o] [-r] [-d destination-iso-file]
 
-💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
+💁 This script will create fully-automated Ubuntu release version 20 to 24 installation media.
 
 Available options:
 
@@ -68,7 +67,7 @@ Available options:
                         by early Ubuntu 20.04 release ISOs.
 -u, --user-data         Path to user-data file. Required if using -a
 -n, --release-name      Specifies the code name to download the ISO image distribution, You must select any string
-                        from the list as an argument. eg: focal, jammy, kinetic.
+                        from the list as an argument. eg: focal, jammy, noble.
 -m, --meta-data         Path to meta-data file. Will be an empty file if not specified and using -a
 -p, --package-name      Bake he package-name downloaded installation into the generated ISO. if the package-name is empty，
                         no installation package will be downloaded. Path to package-name file. Required if using -a

@@ -10,7 +10,7 @@ function cleanup() {
 }
 
 # Capture signals to clear temporary files
-#trap cleanup SIGINT SIGTERM ERR EXIT
+trap cleanup SIGINT SIGTERM ERR EXIT
 
 bootdir="/tmp/BOOT"
 # Gets the current location of the script
@@ -37,7 +37,7 @@ function usage() {
 	cat <<EOF
 Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-p package-name] [-c config-data-file] [-t temaplate-config-file] [-s service-dir-name] [-j job-name] [-k] [-o] [-r] [-d destination-iso-file]
 
-💁 This script will create fully-automated Ubuntu release version 20 to 22 installation media.
+💁 This script will create fully-automated Ubuntu release version 20 to 24 installation media.
 
 Available options:
 
@@ -51,7 +51,7 @@ Available options:
                         by early Ubuntu 20.04 release ISOs.
 -u, --user-data         Path to user-data file. Required if using -a
 -n, --release-name      Specifies the code name to download the ISO image distribution, You must select any string
-                        from the list as an argument. eg: focal, jammy, kinetic.
+                        from the list as an argument. eg: focal, jammy, noble.
 -m, --meta-data         Path to meta-data file. Will be an empty file if not specified and using -a
 -p, --package-name      Bake he package-name downloaded installation into the generated ISO. if the package-name is empty，
                         no installation package will be downloaded. Path to package-name file. Required if using -a
@@ -152,16 +152,13 @@ function parse_params() {
 		[[ -n "${meta_data_file}" ]] && [[ ! -f "$meta_data_file" ]] && die "💥 meta-data file could not be found."
 	fi
 
-	[[ -z "${release_name}" ]] && die "💥 release_name was not specified. eg: focal, jammy, kinetic."
+	[[ -z "${release_name}" ]] && die "💥 release_name was not specified. eg: focal, jammy, kinetic, noble."
 
 	if [ "${use_release_iso}" -eq 1 ]; then
 		download_url="https://releases.ubuntu.com/${release_name}"
 		log "🔎 Checking for current release..."
-		if [ ${release_name} == "kinetic" ]; then
-			download_iso=$(curl -sSL "${download_url}" | grep -oP "ubuntu-[0-9][0-9]\.[0-9][0-9]-live-server-amd64\.iso" | head -n 1)
-		else
-			download_iso=$(curl -sSL "${download_url}" | grep -oP "ubuntu-[0-9][0-9]\.[0-9][0-9]\.[0-9]-live-server-amd64\.iso" | head -n 1)
-		fi
+		download_iso=$(curl -sSL "${download_url}" | grep -oP "ubuntu-(\d{2}\.04)(\.\d+)?-live-server-amd64\.iso" | head -n 1)
+
 		source_iso="${script_dir}/${download_iso}"
 		current_release=$(echo "${download_iso}" | cut -f2 -d-)
 		sha_suffix="${current_release}"
@@ -373,28 +370,32 @@ function dynamic_injection_custom_application() {
     sed -i "\$a\    - curtin in-target --target=/target -- ln -sn /lib/systemd/system/${exact_app_name} /etc/systemd/system/multi-user.target.wants/${exact_app_name}"  "${user_data_file}"
 }
 
+# Dynamic Injection Subfunction Aggregation as a Key Entry for Dynamic Injection
+function dynamic_injection_all() {
+        # load install packages
+        if [ -n "${package_name}" ]; then
+          dynamic_injection_install_pkgs
+        fi
+        # Preprocessing configuration file
+        if [ -n "${config_data_file}" ]; then
+          dynamic_injection_config_file
+        fi
+        # first boot start  handler task
+        if [ -n "${job_name}" ]; then
+          dynamic_injection_first_boot_task
+        fi
+        # local custom application
+        if [ -n "${service_dir_name}" ]; then
+          dynamic_injection_custom_application
+        fi
+}
+
 # create user-data-esxi.yml and meta-data, then change grub.cfg file
 function all_in_ones() {
 	if [ ${all_in_one} -eq 1 ]; then
 		log "🧩 Dynamic injection attach parameters into user-data files."
-    cp ${user_data_file} ${user_data_file}_${today}
-    # load function in order
-    # load install packages
-    if [ -n "${package_name}" ]; then
-      dynamic_injection_install_pkgs
-    fi
-    # Preprocessing configuration file
-    if [ -n "${config_data_file}" ]; then
-      dynamic_injection_config_file
-    fi
-    # first boot start  handler task
-    if [ -n "${job_name}" ]; then
-      dynamic_injection_first_boot_task
-    fi
-    # local custom application
-    if [ -n "${service_dir_name}" ]; then
-      dynamic_injection_custom_application
-    fi
+		cp ${user_data_file} ${user_data_file}_${today}
+    dynamic_injection_all
 
 		log "🧩 Adding user-data and meta-data files..."
 		cp "${user_data_file}" "$tmpdir/user-data"
