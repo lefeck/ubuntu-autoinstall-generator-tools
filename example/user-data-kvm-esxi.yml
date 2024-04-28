@@ -49,24 +49,95 @@ autoinstall:
     install-server: true
   storage:
     config:
-      # Partition table
-      - { ptable: gpt, path: /dev/sda, wipe: superblock, preserve: false, name: '', grub_device: false, type: disk, id: disk-sda }
-      # EFI boot partition
-      - { device: disk-sda, size: 536870912, wipe: superblock, flag: boot, number: 1, preserve: false, grub_device: true, type: partition, id: partition-0 }
-      - { fstype: fat32, volume: partition-0, preserve: false, type: format, id: format-0 }
-      # Linux boot partition
-      - { device: disk-sda, size: 1073741824, wipe: superblock, flag: '', number: 2, preserve: false, grub_device: false, type: partition, id: partition-1 }
-      - { fstype: ext4, volume: partition-1, preserve: false, type: format, id: format-1 }
-      # Partition for LVM, VG
-      - { device: disk-sda, size: -1, wipe: superblock, flag: '', number: 3, preserve: false, grub_device: false, type: partition, id: partition-2 }
-      - { name: ubuntu-vg, devices: [ partition-2 ], preserve: false, type: lvm_volgroup, id: lvm_volgroup-0 }
-      # LV for root
-      - { name: ubuntu-lv, volgroup: lvm_volgroup-0, size: -1, wipe: superblock, preserve: false, type: lvm_partition, id: lvm_partition-0 }
-      - { fstype: ext4, volume: lvm_partition-0, preserve: false, type: format, id: format-2 }
-      # Mount points
-      - { path: /, device: format-2, type: mount, id: mount-2 }
-      - { path: /boot, device: format-1, type: mount, id: mount-1 }
-      - { path: /boot/efi, device: format-0, type: mount, id: mount-0 }
+      - type: disk
+        id: disk0
+        grub_device: true
+        ptable: gpt
+        wipe: superblock-recursive
+        match:
+          size: largest
+        name: ""
+        preserve: false
+
+      - type: partition
+        id: bios-grub-part
+        device: disk0
+        number: 1
+        size: 1048576
+        flag: bios_grub
+        preserve: false
+        grub_device: false
+        wipe: superblock
+
+      - type: partition
+        id: boot-part
+        device: disk0
+        number: 2
+        size: 2147483648
+        preserve: false
+        wipe: superblock
+
+      - type: format
+        id: boot-fs
+        volume: boot-part
+        fstype: ext4
+        preserve: false
+
+      - type: partition
+        id: pv-part
+        device: disk0
+        number: 3
+        size: -1
+        preserve: false
+        wipe: superblock
+
+      - type: lvm_volgroup
+        id: vg0
+        name: ubuntu-vg
+        devices: [ pv-part ]
+        preserve: false
+
+      - type: lvm_partition
+        id: lv-swap
+        volgroup: vg0
+        name: swap
+        size: 1073741824
+        preserve: false
+        wipe: superblock
+
+      - type: format
+        id: fs-swap
+        volume: lv-swap
+        fstype: swap
+        preserve: false
+
+      - type: lvm_partition
+        id: lv-root
+        volgroup: vg0
+        name: ubuntu-lv
+        size: -1
+        preserve: false
+        wipe: superblock
+
+      - type: format
+        id: fs-root
+        volume: lv-root
+        fstype: ext4
+        preserve: false
+      - type: mount
+        id: mount-root
+        path: /
+        device: fs-root
+
+      - type: mount
+        id: mount-boot
+        path: /boot
+        device: boot-fs
+
+      - type: mount
+        id: mount-swap
+        path: ""
+        device: fs-swap
     swap:
       swap: 1G
     grub:
