@@ -2,6 +2,15 @@
 
 A script to generate a fully-automated ISO image for installing Ubuntu onto a machine without human interaction. This uses the new autoinstall method for Ubuntu and newer.
 
+## Project Update Announcement
+
+We have released a new **web-based version** with a more intuitive interface and better user experience.
+Check it out here: [ubuntu-autoinstaller](https://github.com/lefeck/ubuntu-autoinstaller)
+
+**Note:**
+- `automatic-certificate-generator-tools` will continue to be maintained.
+- However, **new features will primarily be developed in [ubuntu-autoinstaller](https://github.com/lefeck/ubuntu-autoinstaller)**.
+
 ## Ubuntu autoinstall process
 
 Here are the detailed instructions:
