@@ -9,7 +9,7 @@ Check it out here: [ubuntu-autoinstaller](https://github.com/lefeck/ubuntu-autoi
 
 **Note:**
 - `automatic-certificate-generator-tools` will continue to be maintained.
-- However, **new features will primarily be developed in [ubuntu-autoinstaller](https://github.com/lefeck/ubuntu-autoinstaller)**.
+- However, **new features will primarily be developed in [UbuntuCraft](https://github.com/lefeck/UbuntuCraft)**.
 
 ## Ubuntu autoinstall process
 
